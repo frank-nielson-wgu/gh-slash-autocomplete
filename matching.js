@@ -13,14 +13,11 @@
   // What to suggest for the text before the caret: commands, or, once a known command and a
   // space are typed, that command's arguments. Returns null when there is nothing to suggest.
   function suggestionsFor(before, commands) {
-    // The command starts the text, so it is what gets replaced from the very beginning.
-    const start = 0;
-
     const argumentMatch = ARGUMENT_TRIGGER.exec(before);
     if (argumentMatch) {
       const command = commands.find((c) => c.name.toLowerCase() === argumentMatch[1].toLowerCase());
       if (!command) return null;
-      return argumentSuggestions(command, argumentMatch[2], start);
+      return argumentSuggestions(command, argumentMatch[2]);
     }
 
     const commandMatch = COMMAND_TRIGGER.exec(before);
@@ -35,10 +32,10 @@
     const exact = commands.find((c) => c.name.toLowerCase() === query);
     const continues = (c) => c !== exact && c.name.toLowerCase().startsWith(query);
     if (query && exact && !commands.some(continues)) {
-      return argumentSuggestions(exact, '', start);
+      return argumentSuggestions(exact, '');
     }
 
-    return commandSuggestions(found, start);
+    return commandSuggestions(found);
   }
 
   // How well `query` matches `text`, higher being better, or null if it does not match. The
@@ -79,11 +76,11 @@
       .map((entry) => entry.item);
   }
 
-  function commandSuggestions(found, start) {
+  function commandSuggestions(found) {
     return {
       mode: 'commands',
       heading: 'Bot commands',
-      start,
+      start: 0, // the command starts the text, so everything is replaced from the beginning
       items: found.map((c) => ({
         label: `/${c.name}`,
         description: c.description,
@@ -96,8 +93,8 @@
 
   // What to offer once `command` is the one in use and `typed` is what follows it: the command
   // itself, then its arguments that match what was typed, best first. Items replace the text
-  // from `start` (the command's slash).
-  function argumentSuggestions(command, typed, start) {
+  // from the command's slash.
+  function argumentSuggestions(command, typed) {
     // Runs of spaces count as one, so "/q  review   th" still matches "review this".
     const query = typed.replace(/[ \t]+/g, ' ').toLowerCase();
     const args = rankByMatch(command.args, query);
@@ -116,7 +113,7 @@
     return {
       mode: args.length ? 'arguments' : 'commands',
       heading: args.length ? `Arguments for /${command.name}` : 'Bot commands',
-      start,
+      start: 0,
       items: [bare, ...argumentItems],
       // With nothing typed the command comes first. Once an argument is being typed, the best
       // matching one is what Tab and Enter should take, not the bare command above it.

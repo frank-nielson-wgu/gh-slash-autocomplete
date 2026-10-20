@@ -14,6 +14,14 @@ let statusTimer = null;
 const rows = new WeakMap(); // command -> its <li>
 const argumentEditors = new WeakMap(); // command -> { addArgument(argument) }
 
+// Create an element with the given properties and attributes, holding `children`.
+function el(tag, props = {}, attrs = {}, ...children) {
+  const node = Object.assign(document.createElement(tag), props);
+  for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
+  node.append(...children);
+  return node;
+}
+
 // Alphabetical, ignoring case; a row still being named goes last.
 function byName(a, b) {
   if (Boolean(a.name) !== Boolean(b.name)) return a.name ? -1 : 1;
@@ -100,18 +108,10 @@ function createArgumentsEditor(command) {
   command.args = (command.args ?? []).map((a) => ({ name: a.name, description: a.description ?? '' }));
   command.args.sort(byName);
 
-  const details = document.createElement('details');
-  details.className = 'args';
-  const summary = document.createElement('summary');
-  const body = document.createElement('div');
-  body.className = 'args-body';
-  const items = document.createElement('ul');
-  items.className = 'arg-list';
-  const add = document.createElement('button');
-  add.type = 'button';
-  add.textContent = 'Add argument';
-  body.append(items, add);
-  details.append(summary, body);
+  const summary = el('summary');
+  const items = el('ul', { className: 'arg-list' });
+  const add = el('button', { type: 'button', textContent: 'Add argument' });
+  const details = el('details', { className: 'args' }, {}, summary, el('div', { className: 'args-body' }, {}, items, add));
 
   const refreshSummary = () => {
     summary.textContent = `Arguments (${command.args.length})`;
@@ -121,24 +121,10 @@ function createArgumentsEditor(command) {
     // Last name that passed validation; '' for a new argument that has never had one.
     argument.savedName = argumentProblem(command, argument) ? '' : argument.name;
 
-    const item = document.createElement('li');
-    item.className = 'arg';
-    const name = document.createElement('input');
-    name.type = 'text';
-    name.className = 'arg-name';
-    name.value = argument.name;
-    name.placeholder = 'argument';
-    name.setAttribute('aria-label', 'Argument');
-    const description = document.createElement('input');
-    description.type = 'text';
-    description.value = argument.description;
-    description.placeholder = 'Description (optional)';
-    description.setAttribute('aria-label', 'Argument description');
-    const remove = document.createElement('button');
-    remove.type = 'button';
-    remove.className = 'remove';
-    remove.textContent = 'Remove';
-    item.append(name, description, remove);
+    const name = el('input', { type: 'text', className: 'arg-name', value: argument.name, placeholder: 'argument' }, { 'aria-label': 'Argument' });
+    const description = el('input', { type: 'text', value: argument.description, placeholder: 'Description (optional)' }, { 'aria-label': 'Argument description' });
+    const remove = el('button', { type: 'button', className: 'remove', textContent: 'Remove' });
+    const item = el('li', { className: 'arg' }, {}, name, description, remove);
 
     const refresh = () => {
       const problem = argumentProblem(command, argument);
@@ -204,44 +190,13 @@ function createRow(command) {
   // Last name that passed validation; '' for a new row that has never had one.
   command.savedName = nameProblem(command) ? '' : command.name;
 
-  const row = document.createElement('li');
-  row.className = 'command';
-
-  const enabled = document.createElement('input');
-  enabled.type = 'checkbox';
-  enabled.checked = command.enabled;
-  enabled.setAttribute('aria-label', 'Enabled');
-
-  const nameField = document.createElement('label');
-  nameField.className = 'name-field';
-  const slash = document.createElement('span');
-  slash.textContent = '/';
-  slash.setAttribute('aria-hidden', 'true');
-  const name = document.createElement('input');
-  name.type = 'text';
-  name.className = 'name';
-  name.value = command.name;
-  name.placeholder = 'command';
-  name.setAttribute('aria-label', 'Command name');
-  nameField.append(slash, name);
-
-  const description = document.createElement('input');
-  description.type = 'text';
-  description.className = 'description';
-  description.value = command.description;
-  description.placeholder = 'Description (optional)';
-  description.setAttribute('aria-label', 'Description');
-
-  const remove = document.createElement('button');
-  remove.type = 'button';
-  remove.className = 'remove';
-  remove.textContent = 'Remove';
-  remove.setAttribute('aria-label', `Remove ${command.name || 'command'}`);
-
-  const meta = document.createElement('div');
-  meta.className = 'meta';
-
-  row.append(enabled, nameField, description, remove, meta, createArgumentsEditor(command));
+  const enabled = el('input', { type: 'checkbox', checked: command.enabled }, { 'aria-label': 'Enabled' });
+  const name = el('input', { type: 'text', className: 'name', value: command.name, placeholder: 'command' }, { 'aria-label': 'Command name' });
+  const nameField = el('label', { className: 'name-field' }, {}, el('span', { textContent: '/' }, { 'aria-hidden': 'true' }), name);
+  const description = el('input', { type: 'text', className: 'description', value: command.description, placeholder: 'Description (optional)' }, { 'aria-label': 'Description' });
+  const remove = el('button', { type: 'button', className: 'remove', textContent: 'Remove' }, { 'aria-label': `Remove ${command.name || 'command'}` });
+  const meta = el('div', { className: 'meta' });
+  const row = el('li', { className: 'command' }, {}, enabled, nameField, description, remove, meta, createArgumentsEditor(command));
 
   enabled.addEventListener('change', () => {
     command.enabled = enabled.checked;
