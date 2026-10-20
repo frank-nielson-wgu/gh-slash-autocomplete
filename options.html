@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Slash commands</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <h1>Slash commands</h1>
+    <p class="intro">
+      Commands suggested when you type <code>/</code> in a GitHub comment box. The extension adds
+      commands it finds in comments on the pages you visit. Edit, disable or remove any of them,
+      or add your own. Under Arguments, list what a command accepts after it, such as
+      <code>review</code> for <code>/q review</code>. After you type the command and a space, the
+      popup suggests them. Arguments the extension finds on pages are a single word; ones you add
+      yourself can be several, such as <code>review this</code>.
+    </p>
+
+    <p id="empty" class="empty" hidden>
+      No commands yet. Visit a pull request where a bot mentions its commands, or add one below.
+    </p>
+
+    <ul id="commands" class="commands" aria-label="Slash commands"></ul>
+
+    <div class="actions">
+      <button id="add" type="button">Add command</button>
+      <span id="status" class="status" role="status" aria-live="polite"></span>
+    </div>
+  </main>
+  <script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "GitHub bot slash-command autocomplete",
+  "version": "2.0.0",
+  "description": "Autocomplete for bot slash commands in GitHub comment boxes. Finds commands on the pages you visit and lists them on an editable options page. Runs only on github.com; no network access.",
+  "permissions": ["storage"],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://github.com/*"],
+      "css": ["content.css"],
+      "js": ["state.js", "matching.js", "scan.js", "menu.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
