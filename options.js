@@ -203,7 +203,7 @@ function createRow(command) {
   const nameField = el('label', { className: 'name-field' }, {}, el('span', { textContent: '/' }, { 'aria-hidden': 'true' }), name);
   const description = el('input', { type: 'text', className: 'description', value: command.description, placeholder: 'Description (optional)' }, { 'aria-label': 'Description' });
   const remove = el('button', { type: 'button', className: 'remove', textContent: 'Remove' }, { 'aria-label': `Remove ${command.name || 'command'}` });
-  const owners = el('input', { type: 'text', value: command.owners.join(', '), placeholder: 'All users and organizations, or e.g. wgu-edu, frank-nielson-wgu, !wgu-edu, wgu-edu/student-portal' }, { 'aria-label': 'Applies to users, organizations and repositories' });
+  const owners = el('input', { type: 'text', value: command.owners.join(', '), placeholder: 'All users and organizations or: wgu-edu, !wgu-edu (excluded), wgu-edu/student-portal, etc.' }, { 'aria-label': 'Applies to users, organizations and repositories' });
   const ownersField = el('label', { className: 'owners-field' }, {}, el('span', { textContent: 'Only for' }), owners);
   const meta = el('div', { className: 'meta' });
   const row = el('li', { className: 'command' }, {}, enabled, nameField, description, remove, ownersField, meta, createArgumentsEditor(command));
