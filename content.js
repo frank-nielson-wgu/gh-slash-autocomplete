@@ -9,7 +9,7 @@
   function update(ta, openedGithub = false) {
     if (ta.selectionStart !== ta.selectionEnd) return close();
     const before = ta.value.slice(0, ta.selectionStart);
-    const suggestions = ns.suggestionsFor(before, s.commands);
+    const suggestions = ns.suggestionsFor(before, ns.commandsHere());
     if (!suggestions) return close();
     // Only a lone "/" is worth waiting on GitHub's menu for. Typing on from it ends the wait.
     if (before !== '/') s.githubExpected = false;

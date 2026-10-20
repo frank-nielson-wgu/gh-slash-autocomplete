@@ -19,7 +19,11 @@ There is no build step. After editing a file, click the reload icon on the exten
 - Type `/` in a GitHub comment box to see suggestions. After a command and a space, the popup
   suggests that command's arguments.
 - Open the extension's options page to manage commands. Under *Arguments*, list what a command
-  accepts after it, such as `review` for `/q review`.
+  accepts after it, such as `review` for `/q review`. Under *Only for*, list the GitHub users,
+  organizations or repositories a command applies to (for example `acme, octocat, acme/site`); it
+  is suggested only on their pages. An owner covers all its repositories; put `!` in front to
+  exclude one, and the most specific entry wins, so `!acme, acme/site` means only `acme/site`. Leave it empty to suggest the command everywhere. Commands the extension finds are
+  scoped to the owner of the page they were found on, and gain each further owner they turn up under.
 
 ## Files
 

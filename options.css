@@ -97,6 +97,15 @@ input[aria-invalid="true"] { border-color: var(--danger); }
 
 .command .args { grid-column: 2 / -1; }
 
+.owners-field {
+  grid-column: 2 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .args summary {
   width: fit-content;
   color: var(--muted);
@@ -127,8 +136,7 @@ input[aria-invalid="true"] { border-color: var(--danger); }
   align-items: center;
 }
 
-.command .meta { grid-column: 2 / -1; color: var(--muted); font-size: 12px; }
-.command .meta[data-error] { color: var(--danger); }
+.command .meta { grid-column: 2 / -1; color: var(--danger); font-size: 12px; }
 
 button {
   padding: 5px 12px;

@@ -3,6 +3,8 @@ const NAME_PATTERN = /^[A-Za-z][\w-]*$/;
 // several words, e.g. "review this", separated by single spaces. (Arguments the extension
 // finds on pages are always one word, since it cannot tell where an argument would end and
 // ordinary text begin.)
+// A GitHub user or organization name, optionally followed by "/" and a repository name.
+const OWNER_PATTERN = /^[a-z\d](?:[a-z\d-]*[a-z\d])?(?:\/[\w.-]+)?$/;
 const ARGUMENT_PATTERN = /^[\w-]+(?: [\w-]+)*$/;
 
 const list = document.getElementById('commands');
@@ -62,6 +64,15 @@ function argumentProblem(command, argument) {
   return collides(argument, command.args) ? 'This command already has that argument.' : '';
 }
 
+// "Acme, !@Beta, beta/site" -> ['acme', '!beta', 'beta/site']: lowercase, without "@", no
+// repeats, invalid names dropped. A leading "!" excludes.
+function parseOwners(text) {
+  const owners = text.split(/[\s,]+/)
+    .map((o) => o.replace(/^(!?)@/, '$1').toLowerCase())
+    .filter((o) => OWNER_PATTERN.test(o.replace(/^!/, '')));
+  return [...new Set(owners)];
+}
+
 function flash(message) {
   status.textContent = message;
   clearTimeout(statusTimer);
@@ -78,6 +89,7 @@ async function persist(message = 'Saved') {
       description: c.description,
       enabled: c.enabled,
       source: c.source,
+      owners: c.owners,
       args: c.args
         .filter((a) => !argumentProblem(c, a))
         .map(({ name, description }) => ({ name, description })),
@@ -94,13 +106,8 @@ function refreshRow(row, command) {
   const problem = nameProblem(command);
   row.querySelector('.name').setAttribute('aria-invalid', String(Boolean(problem)));
   const meta = row.querySelector('.meta');
-  if (problem) {
-    meta.dataset.error = '';
-    meta.textContent = problem;
-  } else {
-    delete meta.dataset.error;
-    meta.textContent = command.source === 'scanned' ? 'Found on a GitHub page' : 'Added by you';
-  }
+  meta.hidden = !problem;
+  meta.textContent = problem;
 }
 
 // The collapsible list of a command's arguments, with a name and description for each.
@@ -187,6 +194,7 @@ function createArgumentsEditor(command) {
 }
 
 function createRow(command) {
+  command.owners ??= [];
   // Last name that passed validation; '' for a new row that has never had one.
   command.savedName = nameProblem(command) ? '' : command.name;
 
@@ -195,8 +203,10 @@ function createRow(command) {
   const nameField = el('label', { className: 'name-field' }, {}, el('span', { textContent: '/' }, { 'aria-hidden': 'true' }), name);
   const description = el('input', { type: 'text', className: 'description', value: command.description, placeholder: 'Description (optional)' }, { 'aria-label': 'Description' });
   const remove = el('button', { type: 'button', className: 'remove', textContent: 'Remove' }, { 'aria-label': `Remove ${command.name || 'command'}` });
+  const owners = el('input', { type: 'text', value: command.owners.join(', '), placeholder: 'All users and organizations, or e.g. wgu-edu, frank-nielson-wgu, !wgu-edu, wgu-edu/student-portal' }, { 'aria-label': 'Applies to users, organizations and repositories' });
+  const ownersField = el('label', { className: 'owners-field' }, {}, el('span', { textContent: 'Only for' }), owners);
   const meta = el('div', { className: 'meta' });
-  const row = el('li', { className: 'command' }, {}, enabled, nameField, description, remove, meta, createArgumentsEditor(command));
+  const row = el('li', { className: 'command' }, {}, enabled, nameField, description, remove, ownersField, meta, createArgumentsEditor(command));
 
   enabled.addEventListener('change', () => {
     command.enabled = enabled.checked;
@@ -229,6 +239,11 @@ function createRow(command) {
   });
   description.addEventListener('input', () => { command.description = description.value; });
   description.addEventListener('change', () => persist());
+  owners.addEventListener('change', () => {
+    command.owners = parseOwners(owners.value);
+    owners.value = command.owners.join(', ');
+    persist();
+  });
   remove.addEventListener('click', () => {
     commands = commands.filter((c) => c !== command);
     row.remove();
@@ -249,7 +264,7 @@ function render() {
 }
 
 document.getElementById('add').addEventListener('click', () => {
-  const command = { name: '', description: '', enabled: true, source: 'manual', args: [] };
+  const command = { name: '', description: '', enabled: true, source: 'manual', owners: [], args: [] };
   commands.push(command);
   const row = createRow(command);
   list.append(row);
