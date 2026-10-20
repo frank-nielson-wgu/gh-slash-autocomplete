@@ -34,7 +34,11 @@ function byName(a, b) {
 function sortRows() {
   const focused = document.activeElement;
   commands.sort(byName);
-  for (const command of commands) list.append(rows.get(command));
+  const sorted = commands.map((c) => rows.get(c));
+  // Rows already in order stay put, so a notice standing in for a removed row keeps its place.
+  const shown = list.querySelectorAll(':scope > .command');
+  if (sorted.length === shown.length && sorted.every((row, i) => row === shown[i])) return;
+  list.append(...sorted);
   // Moving a row can drop focus; give it back.
   if (focused && focused !== document.body && document.activeElement !== focused) focused.focus();
 }
@@ -128,7 +132,7 @@ function createArgumentsEditor(command) {
     // Last name that passed validation; '' for a new argument that has never had one.
     argument.savedName = argumentProblem(command, argument) ? '' : argument.name;
 
-    const name = el('input', { type: 'text', className: 'arg-name', value: argument.name, placeholder: 'argument' }, { 'aria-label': 'Argument' });
+    const name = el('input', { type: 'text', className: 'arg-name', value: argument.name, placeholder: 'arg1 arg2...' }, { 'aria-label': 'Argument' });
     const description = el('input', { type: 'text', value: argument.description, placeholder: 'Description (optional)' }, { 'aria-label': 'Argument description' });
     const remove = el('button', { type: 'button', className: 'remove', textContent: 'Remove' });
     const item = el('li', { className: 'arg' }, {}, name, description, remove);
@@ -198,7 +202,7 @@ function createRow(command) {
   // Last name that passed validation; '' for a new row that has never had one.
   command.savedName = nameProblem(command) ? '' : command.name;
 
-  const enabled = el('input', { type: 'checkbox', checked: command.enabled }, { 'aria-label': 'Enabled' });
+  const enabled = el('input', { type: 'checkbox', checked: command.enabled, title: 'Is enabled?' }, { 'aria-label': 'Enabled' });
   const name = el('input', { type: 'text', className: 'name', value: command.name, placeholder: 'command' }, { 'aria-label': 'Command name' });
   const nameField = el('label', { className: 'name-field' }, {}, el('span', { textContent: '/' }, { 'aria-hidden': 'true' }), name);
   const description = el('input', { type: 'text', className: 'description', value: command.description, placeholder: 'Description (optional)' }, { 'aria-label': 'Description' });
@@ -245,10 +249,24 @@ function createRow(command) {
     persist();
   });
   remove.addEventListener('click', () => {
-    commands = commands.filter((c) => c !== command);
-    row.remove();
-    updateChrome();
+    const index = commands.indexOf(command);
+    commands.splice(index, 1);
     persist();
+    // The removal is saved at once; the notice in the row's place offers to take it back until the page is reloaded.
+    const undo = el('button', { type: 'button', textContent: 'Undo' });
+    const notice = el('li', { className: 'removed' }, {}, el('span', { textContent: `Removed /${command.name || 'command'}.` }), undo);
+    // Undo is as wide as the Remove button it replaces, so it sits in the same place.
+    undo.style.minWidth = `${remove.offsetWidth}px`;
+    undo.addEventListener('click', () => {
+      // A page may have added the same command again in the meantime.
+      if (commands.some((c) => c.name.toLowerCase() === command.name.toLowerCase())) return notice.remove();
+      commands.splice(index, 0, command);
+      notice.replaceWith(row);
+      updateChrome();
+      persist('Restored');
+    });
+    row.replaceWith(notice);
+    updateChrome();
   });
 
   refreshRow(row, command);

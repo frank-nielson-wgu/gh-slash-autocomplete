@@ -67,6 +67,21 @@ code {
   background: var(--row);
 }
 
+/* A disabled rule is greyed out, except the checkbox that re-enables it and the Remove button. */
+.command:has(> input[type="checkbox"]:not(:checked)) { background: color-mix(in srgb, var(--row), gray 25%); }
+.command:has(> input[type="checkbox"]:not(:checked)) > :not(input[type="checkbox"], .remove) { opacity: 0.5; }
+
+.removed {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+}
+
 .name-field {
   display: flex;
   align-items: center;
@@ -98,12 +113,13 @@ input[aria-invalid="true"] { border-color: var(--danger); }
 .command .args { grid-column: 2 / -1; }
 
 .owners-field {
-  grid-column: 2 / -1;
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   gap: 8px;
   color: var(--muted);
   font-size: 12px;
+  white-space: nowrap;
 }
 
 .args summary {
