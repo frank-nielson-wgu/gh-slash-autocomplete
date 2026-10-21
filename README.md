@@ -1,4 +1,4 @@
-# GitHub bot slash-command autocomplete
+# GitHub slash-command autocomplete
 
 A Chrome extension (Manifest V3) that autocompletes bot slash commands in GitHub comment boxes.
 Type `/` in a comment and it suggests commands. It finds commands that bots mention in comments on
