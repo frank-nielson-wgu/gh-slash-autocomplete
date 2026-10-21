@@ -9,6 +9,8 @@ const ARGUMENT_PATTERN = /^[\w-]+(?: [\w-]+)*$/;
 
 const list = document.getElementById('commands');
 const empty = document.getElementById('empty');
+const search = document.getElementById('search');
+const noMatches = document.getElementById('no-matches');
 const status = document.getElementById('status');
 
 let commands = [];
@@ -39,11 +41,31 @@ function byName(a, b) {
   return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
 }
 
+// The commands as listed: by name, or, while searching, best match first with the rest after.
+function displayOrder() {
+  const found = searchCommands(commands, search.value);
+  return found === commands ? commands : [...found, ...commands.filter((c) => !found.includes(c))];
+}
+
+// Show only the commands matching the search box, best match first.
+function applySearch() {
+  const found = new Set(searchCommands(commands, search.value));
+  for (const command of commands) {
+    const row = rows.get(command);
+    row.hidden = !found.has(command);
+    row.querySelector('.name').classList.toggle('match', matchesSearch(search.value, command.name));
+    row.querySelector('.description').classList.toggle('match', matchesSearch(search.value, command.description));
+    argumentEditors.get(command).highlight(search.value);
+  }
+  noMatches.hidden = found.size > 0 || commands.length === 0;
+  sortRows();
+}
+
 // Reorder the rows in place so the one being edited keeps its place in the page.
 function sortRows() {
   const focused = document.activeElement;
   commands.sort(byName);
-  const sorted = commands.map((c) => rows.get(c));
+  const sorted = displayOrder().map((c) => rows.get(c));
   // Rows already in order stay put, so a notice standing in for a removed row keeps its place.
   const shown = list.querySelectorAll(':scope > .command');
   if (sorted.length === shown.length && sorted.every((row, i) => row === shown[i])) return;
@@ -148,6 +170,9 @@ function createArgumentsEditor(command) {
     summary.textContent = `Arguments (${command.args.length})`;
   };
 
+  const fields = []; // { argument, name, description } for each argument row
+  let openedBySearch = false;
+
   function addRow(argument) {
     // Last name that passed validation; '' for a new argument that has never had one.
     argument.savedName = argumentProblem(command, argument) ? '' : argument.name;
@@ -181,8 +206,10 @@ function createArgumentsEditor(command) {
     });
     description.addEventListener('input', () => { argument.description = description.value; });
     description.addEventListener('change', () => persist());
+    fields.push({ argument, name, description });
     remove.addEventListener('click', () => {
       command.args = command.args.filter((a) => a !== argument);
+      fields.splice(fields.findIndex((f) => f.argument === argument), 1);
       item.remove();
       refreshSummary();
       persist();
@@ -205,6 +232,26 @@ function createArgumentsEditor(command) {
   });
 
   argumentEditors.set(command, {
+    // Mark the argument fields the search matches, and open the list to show them. It closes
+    // again once nothing in it matches, unless it was opened by hand.
+    highlight(query) {
+      let matched = false;
+      for (const { argument, name, description } of fields) {
+        const byName = matchesSearch(query, argument.name);
+        const byDescription = matchesSearch(query, argument.description);
+        name.classList.toggle('match', byName);
+        description.classList.toggle('match', byDescription);
+        matched ||= byName || byDescription;
+      }
+      if (matched && !details.open) {
+        details.open = true;
+        openedBySearch = true;
+      } else if (!matched && openedBySearch) {
+        details.open = false;
+        openedBySearch = false;
+      }
+    },
+
     // An argument found on a page while this one is open.
     addArgument(argument) {
       const added = { name: argument.name, description: argument.description ?? '' };
@@ -302,7 +349,14 @@ function render() {
   updateChrome();
 }
 
+search.addEventListener('input', applySearch);
+
 document.getElementById('add').addEventListener('click', () => {
+  // A new, empty command would not match the search and so would be hidden.
+  if (search.value) {
+    search.value = '';
+    applySearch();
+  }
   const command = { name: '', description: '', enabled: true, source: 'manual', owners: [], args: [] };
   commands.push(command);
   const row = createRow(command);
@@ -330,7 +384,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
       if (!known) argumentEditors.get(existing)?.addArgument(argument);
     }
   }
-  sortRows();
+  applySearch();
   updateChrome();
 });
 

@@ -123,4 +123,5 @@
   }
 
   ns.suggestionsFor = suggestionsFor;
+  ns.matchScore = matchScore;
 })();

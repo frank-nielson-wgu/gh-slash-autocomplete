@@ -48,6 +48,8 @@ code {
   font-size: 90%;
 }
 
+#search { margin-top: 16px; }
+
 .commands {
   margin: 16px 0;
   padding: 0;
@@ -69,6 +71,8 @@ code {
   transition: background-color 1s linear;
 }
 .command > * { transition: opacity 1s linear; }
+
+.command[hidden] { display: none; }
 
 /* A disabled rule is greyed out, except the checkbox that re-enables it and the Remove button. */
 .command:has(> input[type="checkbox"]:not(:checked)) { background: color-mix(in srgb, var(--row), gray 25%); }
@@ -93,7 +97,8 @@ code {
 
 .name-field span { color: var(--muted); font-weight: 600; }
 
-input[type="text"] {
+input[type="text"],
+input[type="search"] {
   width: 100%;
   min-width: 0;
   padding: 5px 8px;
@@ -105,10 +110,17 @@ input[type="text"] {
 }
 
 input[type="text"]:focus-visible,
+input[type="search"]:focus-visible,
 button:focus-visible,
 input[type="checkbox"]:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
+}
+
+/* What the search matched on. */
+input.match {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, var(--field));
 }
 
 input[aria-invalid="true"] { border-color: var(--danger); }
