@@ -38,6 +38,8 @@ There is no build step. After editing a file, click the reload icon on the exten
 | `content.js`, `content.css` | Content script entry point and menu styles |
 | `state.js`, `matching.js`, `scan.js`, `menu.js` | Shared state, matching, page scanning, and the popup menu |
 | `options.html`, `options.css`, `options.js` | Options page |
+| `validation.js` | Options page: name, argument and owner checks |
+| `share.js` | Options page: export and import |
 | `icons/` | Toolbar and store icons |
 | `pack.ps1` | Builds the Web Store zip |
 
