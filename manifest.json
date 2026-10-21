@@ -17,14 +17,14 @@
     "service_worker": "background.js"
   },
   "options_ui": {
-    "page": "options.html",
+    "page": "options/options.html",
     "open_in_tab": true
   },
   "content_scripts": [
     {
       "matches": ["https://github.com/*"],
-      "css": ["content.css"],
-      "js": ["state.js", "matching.js", "scan.js", "menu.js", "content.js"],
+      "css": ["content/content.css"],
+      "js": ["content/state.js", "shared/matching.js", "content/scan.js", "content/menu.js", "content/content.js"],
       "run_at": "document_idle"
     }
   ]

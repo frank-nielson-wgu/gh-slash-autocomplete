@@ -35,11 +35,10 @@ There is no build step. After editing a file, click the reload icon on the exten
 | File | Purpose |
 | --- | --- |
 | `manifest.json` | Extension manifest |
-| `content.js`, `content.css` | Content script entry point and menu styles |
-| `state.js`, `matching.js`, `scan.js`, `menu.js` | Shared state, matching, page scanning, and the popup menu |
-| `options.html`, `options.css`, `options.js` | Options page |
-| `validation.js` | Options page: name, argument and owner checks |
-| `share.js` | Options page: export and import |
+| `background.js` | Service worker |
+| `content/` | Scripts and styles injected into github.com: `content.js` (entry point), `content.css` (menu styles), `state.js` (shared state), `scan.js` (page scanning), `menu.js` (popup menu) |
+| `options/` | Options page: `options.html`, `options.css`, `options.js`, `validation.js` (name, argument and owner checks), `share.js` (export and import) |
+| `shared/` | Used by both: `matching.js`, `search.js` |
 | `icons/` | Toolbar and store icons |
 | `pack.ps1` | Builds the Web Store zip |
 

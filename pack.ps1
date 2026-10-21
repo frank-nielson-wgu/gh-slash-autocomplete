@@ -5,8 +5,9 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 $files = @(
   'manifest.json', 'background.js',
-  'content.css', 'content.js', 'state.js', 'matching.js', 'scan.js', 'menu.js',
-  'options.html', 'options.css', 'options.js', 'validation.js', 'share.js', 'search.js'
+  'content/content.css', 'content/content.js', 'content/state.js', 'content/scan.js', 'content/menu.js',
+  'options/options.html', 'options/options.css', 'options/options.js', 'options/validation.js', 'options/share.js',
+  'shared/matching.js', 'shared/search.js'
 ) + (Get-ChildItem icons -File | ForEach-Object { "icons/$($_.Name)" })
 
 $version = (Get-Content manifest.json -Raw | ConvertFrom-Json).version
