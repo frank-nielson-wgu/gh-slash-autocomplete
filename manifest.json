@@ -10,6 +10,12 @@
     "128": "icons/icon-128.png"
   },
   "permissions": ["storage"],
+  "action": {
+    "default_title": "Slash commands"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true
