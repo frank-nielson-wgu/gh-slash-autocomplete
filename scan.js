@@ -6,13 +6,9 @@
   // --- Command list: storage and page scanning -------------------------------------------
 
   const SCAN_DEBOUNCE_MS = 1000;
-  // `/name`, optionally followed by an argument, as the whole text of an inline code span,
-  // e.g. "comment `/update-baseline` to ..." or "use `/q review`".
-  const CODE_SPAN_COMMAND = /^\/([a-z][\w-]*)(?:[ \t]+(.+))?$/i;
-  // An argument found on a page is a single word: we cannot tell where a longer one would end
-  // and ordinary text begin. Anything else after a command (a placeholder such as "<env>", or
-  // several words) is not taken. Several-word arguments can still be added by hand.
-  const ARGUMENT_WORD = /^[\w-]+$/;
+  // Only a comment that starts with the "/" counts; a command mentioned mid-text, even in an inline
+  // code span, is not taken. An argument found on a page is a single word: we cannot tell where a
+  // longer one would end and ordinary text begin. Several-word arguments can still be added by hand.
   // A comment that is nothing but a command and at most one word, e.g. "/q review": someone
   // running the command, so the word is its argument.
   const WHOLE_COMMENT_COMMAND = /^\/([a-z][\w-]*)(?:[ \t]+([\w-]+))?$/i;
@@ -58,6 +54,18 @@
     return s.commands.filter((c) => applies(c.owners, owner, repo));
   };
 
+  // Stop suggesting a command, at once and in storage, by disabling it. The options page lists
+  // disabled commands last, where its checkbox brings the command back.
+  window.SlashCmd.ignoreCommand = async (name) => {
+    const same = (c) => c.name.toLowerCase() === name.toLowerCase();
+    s.commands = s.commands.filter((c) => !same(c));
+    const { commands: stored = [] } = await chrome.storage.local.get('commands');
+    const command = stored.find(same);
+    if (!command) return;
+    command.enabled = false;
+    await chrome.storage.local.set({ commands: stored });
+  };
+
   function loadCommands(stored) {
     s.commands = (stored || [])
       .filter((c) => c.enabled && c.name)
@@ -75,11 +83,6 @@
       if (argument) found.get(name).add(argument);
     };
     for (const body of root.querySelectorAll('.markdown-body')) {
-      for (const code of body.querySelectorAll('code')) {
-        if (code.closest('pre')) continue;
-        const match = CODE_SPAN_COMMAND.exec(code.textContent.trim());
-        if (match) note(match[1], ARGUMENT_WORD.test(match[2] ?? '') ? match[2] : null);
-      }
       const whole = WHOLE_COMMENT_COMMAND.exec(body.textContent.trim());
       if (whole) {
         note(whole[1], whole[2] ?? null);

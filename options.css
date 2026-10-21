@@ -65,7 +65,10 @@ code {
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--row);
+  /* A row that is disabled fades out over the second before it moves to the bottom. */
+  transition: background-color 1s linear;
 }
+.command > * { transition: opacity 1s linear; }
 
 /* A disabled rule is greyed out, except the checkbox that re-enables it and the Remove button. */
 .command:has(> input[type="checkbox"]:not(:checked)) { background: color-mix(in srgb, var(--row), gray 25%); }

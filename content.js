@@ -50,6 +50,13 @@
   // The popup's mouse handler (menu.js) selects through this.
   ns.accept = accept;
 
+  // The "I" on an item: drop the command from the popup, keeping whatever is left of the list.
+  ns.ignore = (name) => {
+    const ta = s.target;
+    ns.ignoreCommand(name).catch(() => {});
+    if (ta) update(ta);
+  };
+
   document.addEventListener('input', (e) => {
     if (!(e.target instanceof HTMLTextAreaElement)) return;
     // GitHub's menu opens when "/" is typed as the first character of the box.

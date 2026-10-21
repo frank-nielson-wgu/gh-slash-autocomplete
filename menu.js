@@ -28,7 +28,9 @@
       const li = e.target.closest('li');
       if (!li) return;
       e.preventDefault();
-      ns.accept(Number(li.dataset.index));
+      const ignore = e.target.closest('.slash-cmd-ignore');
+      if (ignore) ns.ignore(ignore.dataset.command);
+      else ns.accept(Number(li.dataset.index));
     });
     document.body.appendChild(s.menu);
     return s.menu;
@@ -83,7 +85,18 @@
       desc.classList.toggle('is-empty', !c.description);
       // Long descriptions are cut to one line to keep every item the same height.
       if (c.description) li.title = c.description;
-      li.append(name, desc);
+      const text = document.createElement('span');
+      text.className = 'slash-cmd-text';
+      text.append(name, desc);
+      li.append(text);
+      if (c.command) {
+        const ignore = document.createElement('span');
+        ignore.className = 'slash-cmd-ignore';
+        ignore.textContent = 'I';
+        ignore.title = `Ignore /${c.command}`;
+        ignore.dataset.command = c.command;
+        li.append(ignore);
+      }
       m.appendChild(li);
     });
     // A long list scrolls; keep the highlighted item in view.

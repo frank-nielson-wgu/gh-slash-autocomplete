@@ -84,6 +84,7 @@
       items: found.map((c) => ({
         label: `/${c.name}`,
         description: c.description,
+        command: c.name,
         // The space after a command is what starts its arguments.
         insert: `/${c.name} `,
         done: c.args.length === 0,
@@ -109,7 +110,7 @@
 
     // The command on its own stays a choice. It replaces any space already typed, so the space
     // is not doubled.
-    const bare = { label: `/${command.name}`, description: command.description, insert: `/${command.name} `, done: true };
+    const bare = { label: `/${command.name}`, description: command.description, command: command.name, insert: `/${command.name} `, done: true };
     return {
       mode: args.length ? 'arguments' : 'commands',
       heading: args.length ? `Arguments for /${command.name}` : 'Bot commands',

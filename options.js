@@ -24,8 +24,17 @@ function el(tag, props = {}, attrs = {}, ...children) {
   return node;
 }
 
-// Alphabetical, ignoring case; a row still being named goes last.
+// How long a row fades before it moves after being disabled (or enabled).
+const SETTLE_MS = 1000;
+const settleTimers = new WeakMap(); // command -> pending move
+
+// Whether the row sorts among the disabled ones. That lags `enabled` by SETTLE_MS, so a row does
+// not jump away the moment its checkbox is clicked.
+const atBottom = (c) => (c.sortEnabled ?? c.enabled) === false;
+
+// Disabled rows last; then alphabetical, ignoring case, with a row still being named last.
 function byName(a, b) {
+  if (atBottom(a) !== atBottom(b)) return atBottom(a) ? 1 : -1;
   if (Boolean(a.name) !== Boolean(b.name)) return a.name ? -1 : 1;
   return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
 }
@@ -104,6 +113,17 @@ async function persist(message = 'Saved') {
 
 function updateChrome() {
   empty.hidden = commands.length > 0;
+}
+
+// The row fades (see the CSS) now and moves to its place once the fade is done.
+function setEnabled(command, enabled) {
+  command.enabled = enabled;
+  rows.get(command).querySelector('input[type="checkbox"]').checked = enabled;
+  clearTimeout(settleTimers.get(command));
+  settleTimers.set(command, setTimeout(() => {
+    command.sortEnabled = enabled;
+    sortRows();
+  }, SETTLE_MS));
 }
 
 function refreshRow(row, command) {
@@ -199,6 +219,7 @@ function createArgumentsEditor(command) {
 
 function createRow(command) {
   command.owners ??= [];
+  command.sortEnabled = command.enabled;
   // Last name that passed validation; '' for a new row that has never had one.
   command.savedName = nameProblem(command) ? '' : command.name;
 
@@ -213,7 +234,7 @@ function createRow(command) {
   const row = el('li', { className: 'command' }, {}, enabled, nameField, description, remove, ownersField, meta, createArgumentsEditor(command));
 
   enabled.addEventListener('change', () => {
-    command.enabled = enabled.checked;
+    setEnabled(command, enabled.checked);
     persist();
   });
   name.addEventListener('input', () => {
@@ -301,6 +322,8 @@ chrome.storage.onChanged.addListener((changes, area) => {
       list.append(createRow(stored));
       continue;
     }
+    // Ignored (disabled) from the popup while this page is open.
+    if (stored.enabled !== existing.enabled) setEnabled(existing, stored.enabled);
     // A known command may have gained arguments.
     for (const argument of stored.args ?? []) {
       const known = existing.args.some((a) => a.name.toLowerCase() === argument.name.toLowerCase());
@@ -312,14 +335,9 @@ chrome.storage.onChanged.addListener((changes, area) => {
 });
 
 chrome.storage.local.get(['commands', 'ignored']).then(async (stored) => {
-  // Earlier versions kept a list of removed commands, and briefly flagged rows as ignored.
-  // Removing now just deletes, so drop both.
-  const flagged = (stored.commands ?? []).filter((c) => c.ignored);
-  commands = (stored.commands ?? []).filter((c) => !c.ignored);
-  if (stored.ignored || flagged.length) {
-    await chrome.storage.local.remove('ignored');
-    if (flagged.length) await persist('Saved');
-  }
+  commands = stored.commands ?? [];
+  // Earlier versions kept a separate list of removed commands. Removing now just deletes.
+  if (stored.ignored) await chrome.storage.local.remove('ignored');
 
   render();
 });
