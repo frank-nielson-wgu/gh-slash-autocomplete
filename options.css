@@ -48,7 +48,11 @@ code {
   font-size: 90%;
 }
 
-#search { margin-top: 16px; }
+.share { margin-top: 16px; }
+/* Export and Import sit at the right; the status takes the space between them and Add command. */
+.share .status { flex: 1; }
+
+#search { margin-top: 8px; }
 
 .commands {
   margin: 16px 0;

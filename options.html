@@ -17,18 +17,21 @@
     </p>
 
     <p id="empty" class="empty" hidden>
-      No commands yet. Visit a pull request where a bot mentions its commands, or add one below.
+      No commands yet. Visit a pull request where a bot mentions its commands, or add one above.
     </p>
+
+    <div class="actions share">
+      <button id="add" type="button">Add command</button>
+      <span id="status" class="status" role="status" aria-live="polite"></span>
+      <button id="export" type="button">Export</button>
+      <button id="import" type="button">Import</button>
+      <input id="import-file" type="file" accept=".json,application/json" hidden>
+    </div>
 
     <input id="search" type="search" placeholder="Search by command, argument or description" aria-label="Search commands">
     <p id="no-matches" class="empty" hidden>No commands match your search.</p>
 
     <ul id="commands" class="commands" aria-label="Slash commands"></ul>
-
-    <div class="actions">
-      <button id="add" type="button">Add command</button>
-      <span id="status" class="status" role="status" aria-live="polite"></span>
-    </div>
   </main>
   <script src="state.js"></script>
   <script src="matching.js"></script>
