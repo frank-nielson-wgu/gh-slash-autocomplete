@@ -93,7 +93,7 @@
         const ignore = document.createElement('span');
         ignore.className = 'slash-cmd-ignore';
         ignore.textContent = 'I';
-        ignore.title = `Ignore /${c.command}`;
+        ignore.title = `Ignore "/${c.command}"`;
         ignore.dataset.command = c.command;
         li.append(ignore);
       }
