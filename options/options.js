@@ -238,7 +238,7 @@ function createRow(command) {
   const ownersField = el('label', { className: 'owners-field' }, {}, el('span', { textContent: 'Only for' }), owners);
   const meta = el('div', { className: 'meta' });
   const autoArgs = el('input', { type: 'checkbox', checked: command.autoArgs }, { 'aria-label': 'Allow auto-add arguments' });
-  const autoArgsField = el('label', { className: 'auto-args', title: 'Allow auto-add arguments for this command' }, {}, autoArgs);
+  const autoArgsField = el('label', { className: 'auto-args', title: 'Allow auto-adding arguments' }, {}, autoArgs);
   const row = el('li', { className: 'command' }, {}, enabled, nameField, description, remove, ownersField, meta, autoArgsField, createArgumentsEditor(command));
 
   autoArgs.addEventListener('change', () => {
