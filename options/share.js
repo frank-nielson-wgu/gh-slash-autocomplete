@@ -11,6 +11,7 @@ document.getElementById('export').addEventListener('click', () => {
       description: c.description,
       enabled: c.enabled,
       owners: c.owners,
+      autoArgs: c.autoArgs,
       args: c.args
         .filter((a) => !argumentProblem(c, a))
         .map(({ name, description }) => ({ name, description })),
@@ -40,6 +41,7 @@ function sanitizeImported(raw) {
     description: text(raw.description),
     enabled: raw.enabled !== false,
     source: 'manual',
+    autoArgs: raw.autoArgs !== false,
     owners: parseOwners(Array.isArray(raw.owners) ? raw.owners.filter((o) => typeof o === 'string').join(' ') : ''),
     args,
   };

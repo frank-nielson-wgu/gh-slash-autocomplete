@@ -116,6 +116,8 @@
         command.owners.push(owner);
         changed = true;
       }
+      // A command whose arguments the user has locked keeps exactly the ones it has.
+      if (command.autoArgs === false) continue;
       for (const argument of argumentNames) {
         if (command.args.some((a) => a.name.toLowerCase() === argument.toLowerCase())) continue;
         command.args.push({ name: argument, description: '' });

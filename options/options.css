@@ -131,6 +131,15 @@ input[aria-invalid="true"] { border-color: var(--danger); }
 
 .command .args { grid-column: 2 / -1; }
 
+/* Sits in the first column, level with the Arguments summary, under the Enabled checkbox. */
+.auto-args {
+  grid-column: 1;
+  align-self: start;
+  display: flex;
+  margin-top: 2px;
+}
+.auto-args input { margin: 0; }
+
 .owners-field {
   grid-column: 1 / -1;
   display: flex;

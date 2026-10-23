@@ -82,6 +82,7 @@ async function persist(message = 'Saved') {
       enabled: c.enabled,
       source: c.source,
       owners: c.owners,
+      autoArgs: c.autoArgs,
       args: c.args
         .filter((a) => !argumentProblem(c, a))
         .map(({ name, description }) => ({ name, description })),
@@ -223,6 +224,7 @@ function createArgumentsEditor(command) {
 
 function createRow(command) {
   command.owners ??= [];
+  command.autoArgs ??= true;
   command.sortEnabled = command.enabled;
   // Last name that passed validation; '' for a new row that has never had one.
   command.savedName = nameProblem(command) ? '' : command.name;
@@ -235,8 +237,14 @@ function createRow(command) {
   const owners = el('input', { type: 'text', value: command.owners.join(', '), placeholder: 'All users and organizations or: wgu-edu, !wgu-edu (excluded), wgu-edu/student-portal, etc.' }, { 'aria-label': 'Applies to users, organizations and repositories' });
   const ownersField = el('label', { className: 'owners-field' }, {}, el('span', { textContent: 'Only for' }), owners);
   const meta = el('div', { className: 'meta' });
-  const row = el('li', { className: 'command' }, {}, enabled, nameField, description, remove, ownersField, meta, createArgumentsEditor(command));
+  const autoArgs = el('input', { type: 'checkbox', checked: command.autoArgs }, { 'aria-label': 'Allow auto-add arguments' });
+  const autoArgsField = el('label', { className: 'auto-args', title: 'Allow auto-add arguments for this command' }, {}, autoArgs);
+  const row = el('li', { className: 'command' }, {}, enabled, nameField, description, remove, ownersField, meta, autoArgsField, createArgumentsEditor(command));
 
+  autoArgs.addEventListener('change', () => {
+    command.autoArgs = autoArgs.checked;
+    persist();
+  });
   enabled.addEventListener('change', () => {
     setEnabled(command, enabled.checked);
     persist();
