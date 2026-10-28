@@ -4,6 +4,8 @@ const search = document.getElementById('search');
 const noMatches = document.getElementById('no-matches');
 const status = document.getElementById('status');
 
+document.getElementById('help-open').addEventListener('click', () => document.getElementById('help').showModal());
+
 let commands = [];
 let statusTimer = null;
 const rows = new WeakMap(); // command -> its <li>
