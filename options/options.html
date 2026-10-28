@@ -15,6 +15,20 @@
       or add your own. Under Arguments, list what a command accepts after it, such as
       <code>review</code> for <code>/q review</code>.
     </p>
+    <button id="help-open" type="button">How it works</button>
+
+    <dialog id="help" aria-labelledby="help-title">
+      <h2 id="help-title">How it works</h2>
+      <ul>
+        <li>Type <code>/</code> in a GitHub comment box to see suggestions. After a command and a space, it suggests that command's arguments.</li>
+        <li>Commands are found automatically in comments on pages you visit. Use <strong>Add command</strong> to add your own.</li>
+        <li>Untick a command's checkbox to stop suggesting it. Clicking <strong>I</strong> in the popup does the same.</li>
+        <li>Under <strong>Arguments</strong>, list what a command accepts. Untick the box beside it to stop new arguments being added automatically.</li>
+        <li>Under <strong>Only for</strong>, limit a command to users, organizations or repositories, such as <code>acme, acme/site</code>. Put <code>!</code> in front to exclude one.</li>
+        <li><strong>Export</strong> and <strong>Import</strong> share your commands as a JSON file.</li>
+      </ul>
+      <form method="dialog"><button>Close</button></form>
+    </dialog>
 
     <p id="empty" class="empty" hidden>
       No commands yet. Visit a pull request where a bot mentions its commands, or add one above.
