@@ -9,9 +9,11 @@
   // Only a comment that starts with the "/" counts; a command mentioned mid-text, even in an inline
   // code span, is not taken. An argument found on a page is a single word: we cannot tell where a
   // longer one would end and ordinary text begin. Several-word arguments can still be added by hand.
-  // A comment that is nothing but a command and at most one word, e.g. "/q review": someone
-  // running the command, so the word is its argument.
-  const WHOLE_COMMENT_COMMAND = /^\/([a-z][\w-]*)(?:[ \t]+([\w-]+))?$/i;
+  // A comment that is nothing but a command and words, e.g. "/q review --full -h": someone
+  // running the command. The first word is an argument, and so is any later one led with "-" or
+  // "--"; a later bare word could just be text being typed, so "/q review today" gives only "review".
+  // A word may carry a value, e.g. "--limit=5".
+  const WHOLE_COMMENT_COMMAND = /^\/([a-z][\w-]*)((?:[ \t]+[\w-]+(?:=[\w.-]+)?)*)$/i;
   // A comment that merely opens with a command, e.g. "/update-baseline please, thanks". What
   // follows is ordinary prose there, so only the command is taken.
   const LEADING_COMMAND = /^\/([a-z][\w-]*)(?=\s|$)/i;
@@ -77,20 +79,21 @@
   // command name to the set of one-word arguments seen after it.
   function scanForCommands(root = document) {
     const found = new Map();
-    const note = (name, argument) => {
+    const note = (name, args = []) => {
       if (BUILT_IN.has(name.toLowerCase())) return;
       if (!found.has(name)) found.set(name, new Set());
-      if (argument) found.get(name).add(argument);
+      for (const argument of args) found.get(name).add(argument);
     };
     for (const body of root.querySelectorAll('.markdown-body')) {
       const whole = WHOLE_COMMENT_COMMAND.exec(body.textContent.trim());
       if (whole) {
-        note(whole[1], whole[2] ?? null);
+        const words = whole[2].split(/[ \t]+/).filter(Boolean);
+        note(whole[1], words.filter((w, i) => i === 0 || w.startsWith('-')));
         continue;
       }
       const opening = (body.firstElementChild?.textContent ?? '').trimStart();
       const match = LEADING_COMMAND.exec(opening);
-      if (match) note(match[1], null);
+      if (match) note(match[1]);
     }
     return found;
   }

@@ -8,7 +8,8 @@
   // several words ("/q review this") when it was added by hand on the options page, so what
   // follows the command is any run of words; it only matters if it matches a known argument.
   const COMMAND_TRIGGER = /^\/([\w-]*)$/;
-  const ARGUMENT_TRIGGER = /^\/([\w-]+)[ \t]+((?:[\w-]+(?:[ \t]+[\w-]+)*[ \t]*)?)$/;
+  // A word may carry a value, e.g. "--limit=5", and is still being typed after the "=".
+  const ARGUMENT_TRIGGER = /^\/([\w-]+)[ \t]+((?:[\w-]+(?:=[\w.-]*)?(?:[ \t]+[\w-]+(?:=[\w.-]*)?)*[ \t]*)?)$/;
 
   // What to suggest for the text before the caret: commands, or, once a known command and a
   // space are typed, that command's arguments. Returns null when there is nothing to suggest.

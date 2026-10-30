@@ -5,7 +5,7 @@ const NAME_PATTERN = /^[A-Za-z][\w-]*$/;
 // ordinary text begin.)
 // A GitHub user or organization name, optionally followed by "/" and a repository name.
 const OWNER_PATTERN = /^[a-z\d](?:[a-z\d-]*[a-z\d])?(?:\/[\w.-]+)?$/;
-const ARGUMENT_PATTERN = /^[\w-]+(?: [\w-]+)*$/;
+const ARGUMENT_PATTERN = /^[\w-]+(?:=[\w.-]+)?(?: [\w-]+(?:=[\w.-]+)?)*$/;
 
 // A name that has been saved, as opposed to one still being typed.
 const isEstablished = (item) => Boolean(item.savedName) && item.savedName.toLowerCase() === item.name.toLowerCase();
@@ -28,7 +28,7 @@ function nameProblem(command) {
 // Why an argument can't be saved, or '' if it can.
 function argumentProblem(command, argument) {
   if (!argument.name) return 'Enter an argument.';
-  if (!ARGUMENT_PATTERN.test(argument.name)) return 'Use words of letters, numbers, "-" or "_", separated by spaces.';
+  if (!ARGUMENT_PATTERN.test(argument.name)) return 'Use words of letters, numbers, "-" or "_", optionally with "=value", separated by spaces.';
   return collides(argument, command.args) ? 'This command already has that argument.' : '';
 }
 
