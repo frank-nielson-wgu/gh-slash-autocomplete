@@ -82,6 +82,14 @@ const cases = [
   { comments: ['/q review', '/q --full', '/deploy staging'], expected: { q: ['review', '--full'], deploy: ['staging'] } },
   { comments: ['/q review', '/q review', '/Q REVIEW'], expected: { q: ['review'] } },
 
+  // An argument that is never scanned; its command and other arguments still are.
+  { comments: ['/update-baseline --accept-violations'], expected: { 'update-baseline': [] } },
+  { comments: ['/Update-Baseline --ACCEPT-VIOLATIONS'], expected: { 'Update-Baseline': [] } },
+  { comments: ['/update-baseline --accept-violations=true'], expected: { 'update-baseline': [] } },
+  { comments: ['/update-baseline review --accept-violations -h'], expected: { 'update-baseline': ['review', '-h'] } },
+  { comments: ['/update-baseline --accept-violations-now'], expected: { 'update-baseline': ['--accept-violations-now'] } },
+  { comments: ['/q --accept-violations'], expected: { q: ['--accept-violations'] } },
+
   // Commands that are already stored.
   { comments: ['/q --full'], stored: [{ name: 'q', enabled: true, source: 'manual', owners: [], args: [{ name: 'review' }] }], expected: { q: ['review', '--full'] } },
   { comments: ['/q --full'], stored: [{ name: 'q', enabled: true, source: 'manual', owners: [], autoArgs: false, args: [{ name: 'review' }] }], expected: { q: ['review'] } },
