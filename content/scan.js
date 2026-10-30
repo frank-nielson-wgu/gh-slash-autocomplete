@@ -23,6 +23,10 @@
     'table', 'tasklist', 'template', 'templates',
   ]);
 
+  // Commands with an argument that is never taken from a page, as "command argument". The command
+  // itself is still found; only that argument is left out, with or without a "=value".
+  const NEVER_SCANNED = new Set(['update-baseline --accept-violations']);
+
   const byName = (a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
 
   // The user or organization whose page this is, and its repository if it is one, from the path
@@ -82,7 +86,10 @@
     const note = (name, args = []) => {
       if (BUILT_IN.has(name.toLowerCase())) return;
       if (!found.has(name)) found.set(name, new Set());
-      for (const argument of args) found.get(name).add(argument);
+      for (const argument of args) {
+        if (NEVER_SCANNED.has(`${name} ${argument.split('=')[0]}`.toLowerCase())) continue;
+        found.get(name).add(argument);
+      }
     };
     for (const body of root.querySelectorAll('.markdown-body')) {
       const whole = WHOLE_COMMENT_COMMAND.exec(body.textContent.trim());
