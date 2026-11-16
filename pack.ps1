@@ -26,3 +26,12 @@ try {
   $archive.Dispose()
 }
 Write-Host "Created dist/gh-slash-autocomplete-$version.zip"
+
+# Also copy it to the Downloads folder, which is under the home folder on Windows and macOS alike.
+$downloads = Join-Path $HOME 'Downloads'
+if (Test-Path $downloads -PathType Container) {
+  Copy-Item $zip $downloads -Force
+  Write-Host "Copied it to $downloads"
+} else {
+  Write-Warning "No Downloads folder at $downloads; skipped the copy."
+}

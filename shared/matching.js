@@ -82,14 +82,22 @@
       mode: 'commands',
       heading: 'Bot commands',
       start: 0, // the command starts the text, so everything is replaced from the beginning
-      items: found.map((c) => ({
-        label: `/${c.name}`,
-        description: c.description,
-        command: c.name,
-        // The space after a command is what starts its arguments.
-        insert: `/${c.name} `,
-        done: c.args.length === 0,
-      })),
+      // Each command is followed by its arguments, so they can be picked without typing the whole
+      // command first. The popup scrolls when this gets long.
+      items: found.flatMap((c) => [
+        {
+          label: `/${c.name}`,
+          description: c.description,
+          command: c.name,
+          // The space after a command is what starts its arguments.
+          insert: `/${c.name} `,
+          done: c.args.length === 0,
+        },
+        ...c.args.map((a) => {
+          const text = `/${c.name} ${a.name}`;
+          return { label: text, description: a.description, insert: text, done: true };
+        }),
+      ]),
     };
   }
 
