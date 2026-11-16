@@ -16,8 +16,8 @@ There is no build step. After editing a file, click the reload icon on the exten
 
 ## Use
 
-- Type `/` in a GitHub comment box to see suggestions. After a command and a space, the popup
-  suggests that command's arguments. Click the **I** at the right of a command to ignore it: it is
+- Type `/` in a GitHub comment box to see suggestions. Each command is listed with its arguments
+  beneath it, and the popup scrolls once more than five items match. Click the **I** at the right of a command to ignore it: it is
   disabled, so it is no longer suggested, and moves to the bottom of the options page, where its
   checkbox brings it back.
 - **Export** on the options page saves your commands and their arguments to a JSON file you can
