@@ -52,6 +52,11 @@ This writes `dist/gh-slash-autocomplete-<version>.zip`, containing only the file
 needs. Bump `version` in `manifest.json` before each upload, then upload the zip in the
 [Chrome Developer Dashboard](https://chrome.google.com/webstore/devconsole).
 
+You do not have to pack by hand: when a change to `manifest.json` (the version bump) reaches `main`,
+the **Release** workflow (`.github/workflows/release.yml`) builds the zip and attaches it to a GitHub
+release tagged `v<version>`. It skips versions that already have a release, and can also be run
+from the Actions tab.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
