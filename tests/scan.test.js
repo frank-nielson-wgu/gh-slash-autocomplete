@@ -1,4 +1,4 @@
-// Regression tests for the page scanning in content/scan.js. Run with: node tests/scan.test.js
+// Regression tests for the page scanning in src/content/scan.js. Run with: node tests/scan.test.js
 // Each case feeds in the text of one comment (and, optionally, commands already stored), runs the
 // real scan.js against a stubbed page, and compares the commands it stored with what is expected.
 // Every case is printed; a mismatch is logged with console.error() and the exit code becomes 1.
@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
-const source = fs.readFileSync(path.join(__dirname, '..', 'content', 'scan.js'), 'utf8');
+const source = fs.readFileSync(path.join(__dirname, '..', 'src', 'content', 'scan.js'), 'utf8');
 
 // Runs scan.js on a page whose comments have these texts, and resolves to the commands in storage
 // afterwards, as { name: [argument names] }.

@@ -3,14 +3,17 @@ $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
+# The extension lives in src/; its files go into the zip at paths relative to that folder.
+$src = Join-Path $PSScriptRoot "src"
+
 $files = @(
   'manifest.json', 'background.js',
   'content/content.css', 'content/content.js', 'content/state.js', 'content/scan.js', 'content/menu.js',
   'options/options.html', 'options/options.css', 'options/options.js', 'options/validation.js', 'options/share.js',
   'shared/matching.js', 'shared/search.js'
-) + (Get-ChildItem icons -File | ForEach-Object { "icons/$($_.Name)" })
+) + (Get-ChildItem (Join-Path $src icons) -File | ForEach-Object { "icons/$($_.Name)" })
 
-$version = (Get-Content manifest.json -Raw | ConvertFrom-Json).version
+$version = (Get-Content (Join-Path $src manifest.json) -Raw | ConvertFrom-Json).version
 $zip = Join-Path $PSScriptRoot "dist/gh-slash-autocomplete-$version.zip"
 
 New-Item -ItemType Directory -Force dist | Out-Null
@@ -20,7 +23,7 @@ Remove-Item $zip -ErrorAction SilentlyContinue
 $archive = [IO.Compression.ZipFile]::Open($zip, 'Create')
 try {
   foreach ($file in $files) {
-    [void][IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, (Join-Path $PSScriptRoot $file), $file)
+    [void][IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, (Join-Path $src $file), $file)
   }
 } finally {
   $archive.Dispose()

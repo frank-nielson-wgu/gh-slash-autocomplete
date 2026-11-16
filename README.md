@@ -10,7 +10,7 @@ requests.
 ## Install from source
 
 1. Open `chrome://extensions` and turn on **Developer mode**.
-2. Click **Load unpacked** and choose this folder.
+2. Click **Load unpacked** and choose the `src` folder.
 
 There is no build step. After editing a file, click the reload icon on the extension's card.
 
@@ -34,12 +34,12 @@ There is no build step. After editing a file, click the reload icon on the exten
 
 | File | Purpose |
 | --- | --- |
-| `manifest.json` | Extension manifest |
-| `background.js` | Service worker |
-| `content/` | Scripts and styles injected into github.com: `content.js` (entry point), `content.css` (menu styles), `state.js` (shared state), `scan.js` (page scanning), `menu.js` (popup menu) |
-| `options/` | Options page: `options.html`, `options.css`, `options.js`, `validation.js` (name, argument and owner checks), `share.js` (export and import) |
-| `shared/` | Used by both: `matching.js`, `search.js` |
-| `icons/` | Toolbar and store icons |
+| `src/manifest.json` | Extension manifest |
+| `src/background.js` | Service worker |
+| `src/content/` | Scripts and styles injected into github.com: `content.js` (entry point), `content.css` (menu styles), `state.js` (shared state), `scan.js` (page scanning), `menu.js` (popup menu) |
+| `src/options/` | Options page: `options.html`, `options.css`, `options.js`, `validation.js` (name, argument and owner checks), `share.js` (export and import) |
+| `src/shared/` | Used by both: `matching.js`, `search.js` |
+| `src/icons/` | Toolbar and store icons |
 | `pack.ps1` | Builds the Web Store zip |
 
 ## Pack
@@ -49,10 +49,10 @@ There is no build step. After editing a file, click the reload icon on the exten
 ```
 
 This writes `dist/gh-slash-autocomplete-<version>.zip`, containing only the files the extension
-needs. Bump `version` in `manifest.json` before each upload, then upload the zip in the
+needs. Bump `version` in `src/manifest.json` before each upload, then upload the zip in the
 [Chrome Developer Dashboard](https://chrome.google.com/webstore/devconsole).
 
-You do not have to pack by hand: when a change to `manifest.json` (the version bump) reaches `main`,
+You do not have to pack by hand: when a change to `src/manifest.json` (the version bump) reaches `main`,
 the **Release** workflow (`.github/workflows/release.yml`) builds the zip and attaches it to a GitHub
 release tagged `v<version>`. It skips versions that already have a release, and can also be run
 from the Actions tab.
