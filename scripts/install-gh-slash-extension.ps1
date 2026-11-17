@@ -27,7 +27,27 @@ if (-not $IsAdmin) {
     exit
 }
 
-if (-not $NoPause) { 1..8 | ForEach-Object { Write-Host ('#' * 60) } ; Write-Host "" }  # a block of # first, so the output starts lower in the window
+if (-not $NoPause) {
+    # The extension's icon (a dark tile with a slash) in ASCII, so the output starts lower in the window.
+    Write-Host @'
+   ########################
+ ############################
+##################   #########
+#################    #########
+################    ##########
+###############    ###########
+##############    ############
+#############    #############
+############    ##############
+###########    ###############
+##########    ################
+#########    #################
+#########   ##################
+ ############################
+   ########################
+'@ -ForegroundColor DarkGray
+    Write-Host "  GitHub bot slash-command autocomplete`n" -ForegroundColor White
+}
 
 # --- CONFIGURATION ---
 $ExtensionID = "aimpmkmhbohibcafaapmdhpmpmmofnpp"
