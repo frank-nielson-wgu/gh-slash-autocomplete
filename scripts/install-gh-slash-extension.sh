@@ -16,12 +16,11 @@ for Arg in "$@"; do
     esac
 done
 
-# The .crx sits next to this script (release zip), or in its parent (repo, where the scripts are in scripts/).
-# The shared lib-gh-slash-extension.sh is in scripts/ in the release zip, and next to this script in the repo.
+# This script and lib-gh-slash-extension.sh are in the scripts/ folder. The .crx is in its parent: the repo root, or the
+# top of the release zip.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LIB_DIR="$SCRIPT_DIR"; [ -f "$LIB_DIR/lib-gh-slash-extension.sh" ] || LIB_DIR="$SCRIPT_DIR/scripts"  # in the repo it is next to this script, in the release zip in scripts/
 # shellcheck source=lib-gh-slash-extension.sh
-source "$LIB_DIR/lib-gh-slash-extension.sh" || { echo "ERROR: lib-gh-slash-extension.sh not found. Keep the scripts folder next to this script." >&2; exit 1; }
+source "$SCRIPT_DIR/lib-gh-slash-extension.sh" || { echo "ERROR: lib-gh-slash-extension.sh must be in the same folder as this script." >&2; exit 1; }
 
 check_platform install-gh-slash-extension.bat
 show_banner
@@ -64,7 +63,11 @@ if [ "$OS" = linux ] && { [ -d "$HOME/snap/chromium" ] || [ -d "$HOME/.var/app/o
     say "Note: Chromium installed as a snap or Flatpak keeps its files elsewhere and is not supported by this script." "$C_YELLOW"
 fi
 
-check_can_write "${TARGETS[@]}"  # before closing anything
+choose_install_mode "${TARGETS[@]}"  # before closing anything
+if $SYSTEM_MODE; then  # make sure we can get administrator rights before closing or changing anything
+    init_sudo
+    "${SUDO[@]}" -v || fail "Administrator rights are needed. Nothing was changed."
+fi
 
 # 3. The browsers must be closed: they rewrite their Preferences files when they exit, which would undo the cleanup
 #    in step 4. Offer to close them, or stop.
@@ -96,7 +99,9 @@ if ($modified) {
 '
 for Variant in "${TARGETS[@]}"; do
     DataDir="$(variant_data_dir "$Variant")"
-    if [ ! -d "$DataDir" ]; then
+    if $SYSTEM_MODE; then
+        say "Skipping the check for a previous removal of the extension; it needs the files macOS is blocking." "$C_YELLOW"
+    elif [ ! -d "$DataDir" ]; then
         say "No $(variant_label "$Variant") profile folder found at $DataDir (has it been opened at least once?)." "$C_YELLOW"
     elif ! command -v perl >/dev/null 2>&1; then
         say "perl was not found, so the $(variant_label "$Variant") profiles were not checked for a previous removal of the extension." "$C_YELLOW"
@@ -119,7 +124,28 @@ for Variant in "${TARGETS[@]}"; do
 done
 
 # 5. Register the .crx (per user, so no administrator rights are needed)
+#    ...or, if macOS blocked that, for all users: keep a copy of the .crx where Chrome can always read it and
+#    register that.
+if $SYSTEM_MODE; then
+    SYSTEM_CRX="$SYSTEM_CRX_DIR/$(basename "$CRX_PATH")"
+    JsonTmp="$(mktemp)"
+    printf '{\n  "external_crx": "%s",\n  "external_version": "%s"\n}\n' "$(json_escape "$SYSTEM_CRX")" "$Version" > "$JsonTmp"
+    if "${SUDO[@]}" mkdir -p "$SYSTEM_CRX_DIR" "$(dirname "$SYSTEM_EXT_JSON")" \
+        && "${SUDO[@]}" install -m 644 "$CRX_PATH" "$SYSTEM_CRX" \
+        && "${SUDO[@]}" install -m 644 "$JsonTmp" "$SYSTEM_EXT_JSON"; then
+        # drop the copies of older versions
+        for File in "$SYSTEM_CRX_DIR/$CRX_PREFIX"*.crx; do
+            [ -f "$File" ] && [ "$File" != "$SYSTEM_CRX" ] && "${SUDO[@]}" rm -f "$File"
+        done
+        say "Registered for every user of this Mac (copy of the .crx kept in $SYSTEM_CRX_DIR)." "$C_CYAN"
+    else
+        rm -f "$JsonTmp"
+        fail "Couldn't write to /Library. Nothing is registered."
+    fi
+    rm -f "$JsonTmp"
+fi
 for Variant in "${TARGETS[@]}"; do
+    $SYSTEM_MODE && break
     mkdir -p "$(dirname "$(ext_json "$Variant")")" || fail "Could not create $(dirname "$(ext_json "$Variant")")"
     printf '{\n  "external_crx": "%s",\n  "external_version": "%s"\n}\n' "$(json_escape "$CRX_PATH")" "$Version" > "$(ext_json "$Variant")" \
         || fail "Could not write $(ext_json "$Variant")"
@@ -134,7 +160,7 @@ if [ "$OS" = mac ]; then
 else
     PolicyTmp="$(mktemp)"
     printf '{\n  "ExtensionSettings": {\n    "%s": {\n      "installation_mode": "allowed",\n      "toolbar_pin": "force_pinned"\n    }\n  }\n}\n' "$EXTENSION_ID" > "$PolicyTmp"
-    if $NO_PAUSE; then SUDO=(sudo -n); else SUDO=(sudo); say "Pinning the toolbar icon needs administrator rights (sudo)." "$C_YELLOW"; fi
+    init_sudo; if ! $NO_PAUSE; then say "Pinning the toolbar icon needs administrator rights (sudo)." "$C_YELLOW"; fi
     for Variant in "${TARGETS[@]}"; do
         if ! { "${SUDO[@]}" mkdir -p "$(variant_policy_dir "$Variant")" && "${SUDO[@]}" install -m 644 "$PolicyTmp" "$(policy_file "$Variant")"; }; then
             say "Couldn't write $(policy_file "$Variant"), so the $(variant_label "$Variant") toolbar icon is not pinned. The extension is still installed." "$C_YELLOW"
