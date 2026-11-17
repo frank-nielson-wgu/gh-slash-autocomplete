@@ -14,7 +14,7 @@ if (-not $IsAdmin) {
 }
 
 # --- CONFIGURATION ---
-$ExtensionID = "aimpmkmhbohibcafaapmdhpmmofnpp"
+$ExtensionID = "aimpmkmhbohibcafaapmdhpmpmmofnpp"
 $CrxPattern  = "gh-slash-autocomplete-*.crx"
 $DeleteCrx   = $false  # Set to $true if you also want the script to delete local .crx files
 
