@@ -1,11 +1,17 @@
 param([switch]$NoPause)  # skip the "Press Enter" prompts (for CI and automation)
 function Wait-ForEnter([string]$Prompt) { if (-not $NoPause) { Read-Host $Prompt } }
-function Read-YesNo([string]$Prompt) {  # asks until the answer is y or n; returns $true for y
+function Read-YesNo([string]$Prompt) {  # one key press, no Enter; asks until it is y or n; returns $true for y
     while ($true) {
-        $Reply = (Read-Host $Prompt).Trim()
-        if ($Reply -match '^(y|yes)$') { return $true }
-        if ($Reply -match '^(n|no)$') { return $false }
-        Write-Host "Please type y or n." -ForegroundColor Yellow
+        Write-Host "$Prompt " -NoNewline
+        if ([Console]::IsInputRedirected) {
+            $Key = ((Read-Host).Trim() + ' ')[0]  # no real console (redirected input): fall back to typing + Enter
+        } else {
+            $Key = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown').Character
+            Write-Host $Key
+        }
+        if ($Key -eq 'y') { return $true }
+        if ($Key -eq 'n') { return $false }
+        Write-Host "Please press y or n." -ForegroundColor Yellow
     }
 }
 
