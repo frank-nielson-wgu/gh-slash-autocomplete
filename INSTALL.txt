@@ -14,6 +14,8 @@ On Windows they also work on managed Chrome browsers.
   uninstall-gh-slash-extension.sh        Removes the extension (macOS and Linux).
   lib-gh-slash-extension.sh              Helpers the two .sh scripts share. Keep it in the
                                          same folder as them.
+  src\                                   The extension's source files, for the manual install
+                                         (see "MANUAL INSTALL").
 
 The sections below are for Windows. macOS and Linux are covered in the last
 section, "MACOS AND LINUX".
@@ -70,6 +72,44 @@ UPDATE
 If an older .crx is still in the folder, the installer uses the most recently
 modified one, which is the one from the newer release. You can delete the old
 one.
+
+
+MANUAL INSTALL (WITHOUT THE INSTALLER)
+--------------------------------------
+
+Use this on any operating system if you can't run the installer scripts, or
+just want to try the extension. Chrome loads the extension straight from a
+folder of source files, so this uses the "src" folder in this release, not the
+.crx. (Dragging the .crx onto chrome://extensions doesn't work: Chrome blocks
+extensions that don't come from the Chrome Web Store.)
+
+1. Unzip the release into a PERMANENT folder, if you haven't already. The
+   folder you need is the one named "src", which contains manifest.json.
+
+   Chrome loads the extension from this folder, so do not move or delete it
+   after installing. If you do, the extension stops working.
+
+2. In Chrome, go to chrome://extensions
+
+3. Turn on "Developer mode" (the switch in the top-right corner).
+
+4. Click "Load unpacked", pick the "src" folder (the one that contains
+   manifest.json), and click Select Folder.
+
+5. "GitHub bot slash-command autocomplete" now appears in the list, already
+   switched on. To keep its icon in the toolbar, click the puzzle-piece
+   button in Chrome's toolbar and then the pin next to the extension.
+
+Notes:
+
+  - To update, unzip the newer release over the same folder, go to
+    chrome://extensions and click the reload icon on the extension's card.
+  - To remove it, click Remove on the extension's card.
+  - Don't use this together with the installer. Chrome would show the
+    extension twice. If you installed it with the installer, run the
+    uninstaller first.
+  - Chrome may show a "Disable developer mode extensions" prompt when it
+    starts. Dismiss it (or choose Keep) to leave the extension on.
 
 
 UNINSTALL

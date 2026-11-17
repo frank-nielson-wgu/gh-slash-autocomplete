@@ -1,5 +1,5 @@
 # Builds dist/gh-slash-autocomplete-install-<version>.zip: the packed .crx plus the install and uninstall scripts,
-# with the .bat launchers next to the .crx and the .ps1 scripts in scripts/. Run scripts/pack-extension.ps1 first.
+# with the .bat launchers next to the .crx and the .ps1 scripts in scripts/, plus the src/ folder. Run scripts/pack-extension.ps1 first.
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
@@ -11,7 +11,7 @@ if (-not (Test-Path (Join-Path $root $crx))) {
   throw "$crx not found in the repo root. Run scripts/pack-extension.ps1 first."
 }
 
-# Path inside the zip -> file on disk.
+# Path inside the zip -> file on disk. The extension's source (src/) is included too, for loading it unpacked by hand.
 $files = [ordered]@{
   $crx                                      = $crx
   'INSTALL.txt'                             = 'INSTALL.txt'
@@ -23,6 +23,12 @@ $files = [ordered]@{
   'install-gh-slash-extension.sh'            = 'scripts/install-gh-slash-extension.sh'
   'uninstall-gh-slash-extension.sh'          = 'scripts/uninstall-gh-slash-extension.sh'
   'lib-gh-slash-extension.sh'                = 'scripts/lib-gh-slash-extension.sh'
+}
+
+$srcRoot = Join-Path $root 'src'
+foreach ($file in Get-ChildItem $srcRoot -Recurse -File) {
+  $relative = $file.FullName.Substring($srcRoot.Length + 1).Replace('\', '/')
+  $files["src/$relative"] = "src/$relative"
 }
 
 $zip = Join-Path $root "dist/gh-slash-autocomplete-install-$version.zip"

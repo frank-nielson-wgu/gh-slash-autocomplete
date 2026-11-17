@@ -150,24 +150,25 @@ reopen_browser() {  # reopen_browser VARIANT: launch with the previous tabs; ret
 }
 
 # Offer to close the running browsers among "$@" the way the user would (asking them to quit, not killing them).
-# The caller sets these messages first: MSG_RUNNING (the end of "<browser> is running ..."), PROMPT_CLOSE, PROMPT_RETRY.
+# $1 is the end of the "<browser> is running ..." message, $2 the question to close, $3 the question to retry.
 # Sets CLOSED to the browsers we closed, which reopen_closed reopens later. Returns 1 if one is still running.
 close_running_browsers() {
-    local V Pid Answer Still
+    local MsgRunning="$1" PromptClose="$2" PromptRetry="$3" V Pid Answer Still
+    shift 3
     local -a Running=()
     CLOSED=()
     while IFS= read -r V; do [ -n "$V" ] && Running+=("$V"); done < <(running_among "$@")
     [ "${#Running[@]}" -gt 0 ] || return 0
 
     for V in "${Running[@]}"; do
-        say "$(variant_label "$V") $MSG_RUNNING" "$C_YELLOW"
+        say "$(variant_label "$V") $MsgRunning" "$C_YELLOW"
         if [ "$OS" = linux ]; then  # remember what to launch again
             Pid="$(browser_pids "$V" | head -n 1)"
             printf -v "EXE_$V" '%s' "$(readlink "/proc/$Pid/exe" 2>/dev/null | sed 's/ (deleted)$//')"
         fi
     done
     Answer=false
-    if ! $NO_PAUSE && read_yes_no "$PROMPT_CLOSE"; then Answer=true; fi
+    if ! $NO_PAUSE && read_yes_no "$PromptClose"; then Answer=true; fi
 
     while $Answer; do
         for V in "${Running[@]}"; do close_browser "$V"; done
@@ -175,7 +176,7 @@ close_running_browsers() {
         for V in "${Running[@]}"; do wait_for_browser exit "$V" 5 || Still=false; done
         $Still && break
         say "A browser didn't close. It may be waiting on a dialog or running in the background." "$C_YELLOW"
-        read_yes_no "$PROMPT_RETRY" || Answer=false
+        read_yes_no "$PromptRetry" || Answer=false
     done
 
     [ -z "$(running_among "${Running[@]}")" ] || return 1

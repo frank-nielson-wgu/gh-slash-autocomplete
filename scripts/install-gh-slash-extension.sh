@@ -65,10 +65,7 @@ fi
 
 # 3. The browsers must be closed: they rewrite their Preferences files when they exit, which would undo the cleanup
 #    in step 4. Offer to close them, or stop.
-MSG_RUNNING="is running and must be closed to finish the install."
-PROMPT_CLOSE="Close it now? It will be reopened with your tabs when the install finishes (y/n)"
-PROMPT_RETRY="Try again (y/n)? Choose n to close it yourself"
-close_running_browsers "${TARGETS[@]}" || fail "Close the browser completely (all windows), then run this installer again. Nothing was changed."
+close_running_browsers     "is running and must be closed to finish the install."     "Close it now? It will be reopened with your tabs when the install finishes (y/n)"     "Try again (y/n)? Choose n to close it yourself"     "${TARGETS[@]}" || fail "Close the browser completely (all windows), then run this installer again. Nothing was changed."
 
 # 4. Scan ALL profiles for the current user and clear the extension's blacklist entries
 #    (the browser remembers an extension the user removed and refuses to install it again).

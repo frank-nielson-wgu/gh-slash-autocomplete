@@ -33,10 +33,7 @@ if [ "${#TARGETS[@]}" -eq 0 ]; then say "No installed copy of the extension was 
 
 # 1. The browser only notices the removal when it restarts. Offer to restart it. Unlike the installer, the removal
 #    doesn't need it closed, so declining just means the user restarts it themselves.
-MSG_RUNNING="is running. It needs to be restarted for the removal to take effect."
-PROMPT_CLOSE="Close it now? It will be reopened with your tabs when the uninstall finishes (y/n)"
-PROMPT_RETRY="Try again (y/n)? Choose n to restart it yourself later"
-close_running_browsers "${TARGETS[@]}" || say "Leaving the browser open; restart it yourself after the uninstall finishes." "$C_YELLOW"
+close_running_browsers     "is running. It needs to be restarted for the removal to take effect."     "Close it now? It will be reopened with your tabs when the uninstall finishes (y/n)"     "Try again (y/n)? Choose n to restart it yourself later"     "${TARGETS[@]}" || say "Leaving the browser open; restart it yourself after the uninstall finishes." "$C_YELLOW"
 
 # 2. Remove the External Extensions entries
 for Variant in "${TARGETS[@]}"; do
