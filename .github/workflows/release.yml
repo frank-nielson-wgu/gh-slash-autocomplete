@@ -39,7 +39,7 @@ jobs:
       - name: Pack
         if: steps.check.outputs.exists == 'false'
         shell: pwsh
-        run: ./zip-extension.ps1
+        run: ./scripts/zip-extension.ps1
 
       - name: Create the release
         if: steps.check.outputs.exists == 'false'

@@ -14,14 +14,14 @@ if (-not $IsAdmin) {
 $ExtensionID = "aimpmkmhbohibcafaapmdhpmmofnpp"
 $CrxPattern  = "gh-slash-autocomplete-*.crx"
 
-# Resolve the folder where this script lives (with fallback to current directory)
-$ScriptDir = if ([string]::IsNullOrWhiteSpace($PSScriptRoot)) { (Get-Location).Path } else { $PSScriptRoot }
+# Resolve the repo root (the parent of the scripts folder, where the .crx lives)
+$ScriptDir = Split-Path -Parent $(if ([string]::IsNullOrWhiteSpace($PSScriptRoot)) { (Get-Location).Path } else { $PSScriptRoot })
 
-# 1. Automatically find the most recently modified .crx in the script's folder
+# 1. Automatically find the most recently modified .crx in the repo root
 $LatestCrx = Get-ChildItem -Path $ScriptDir -Filter $CrxPattern | Sort-Object LastWriteTime -Descending | Select-Object -First 1
 
 if ($null -eq $LatestCrx) {
-    Write-Error "CRITICAL: No .crx file matching '$CrxPattern' found in $ScriptDir! Keep the .crx in the same folder as this script."
+    Write-Error "CRITICAL: No .crx file matching '$CrxPattern' found in $ScriptDir! Keep the .crx in the repo root (the parent of the scripts folder)."
     Read-Host "Press Enter to exit"
     exit 1
 }
