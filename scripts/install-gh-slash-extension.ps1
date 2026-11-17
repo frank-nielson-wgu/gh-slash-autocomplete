@@ -217,8 +217,7 @@ if ($ClosedChrome -and $ChromeExe -and (Test-Path $ChromeExe)) {
     }
 
     if (Get-Process -Name chrome -ErrorAction SilentlyContinue) {
-        Write-Host "Reopened Chrome." -ForegroundColor Cyan
-        Write-Host "Next steps: In Chrome, go to chrome://extensions -> toggle the extension ON once." -ForegroundColor Cyan
+        exit 0  # everything worked and Chrome is back: close this window right away
     } else {
         Write-Warning "Couldn't reopen Chrome automatically after 4 tries. Please start Chrome yourself."
         Write-Host "Next steps: Open Chrome -> go to chrome://extensions -> toggle the extension ON once." -ForegroundColor Cyan
