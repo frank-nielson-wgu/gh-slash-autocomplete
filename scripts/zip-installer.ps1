@@ -1,5 +1,5 @@
 # Builds dist/gh-slash-autocomplete-install-<version>.zip: the packed .crx plus the install and uninstall scripts,
-# laid out the way the scripts expect (the .crx next to the scripts folder). Run scripts/pack-extension.ps1 first.
+# with the .bat launchers next to the .crx and the .ps1 scripts in scripts/. Run scripts/pack-extension.ps1 first.
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
@@ -15,9 +15,9 @@ if (-not (Test-Path (Join-Path $root $crx))) {
 $files = [ordered]@{
   $crx                                      = $crx
   'INSTALL.md'                              = 'INSTALL.md'
-  'scripts/install-gh-slash-extension.bat'   = 'scripts/install-gh-slash-extension.bat'
+  'install-gh-slash-extension.bat'           = 'scripts/install-gh-slash-extension.bat'
   'scripts/install-gh-slash-extension.ps1'   = 'scripts/install-gh-slash-extension.ps1'
-  'scripts/uninstall-gh-slash-extension.bat' = 'scripts/uninstall-gh-slash-extension.bat'
+  'uninstall-gh-slash-extension.bat'         = 'scripts/uninstall-gh-slash-extension.bat'
   'scripts/uninstall-gh-slash-extension.ps1' = 'scripts/uninstall-gh-slash-extension.ps1'
 }
 
