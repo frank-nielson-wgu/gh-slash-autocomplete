@@ -15,8 +15,8 @@ $ExtensionID = "aimpmkmhbohibcafaapmdhpmmofnpp"
 $CrxPattern  = "gh-slash-autocomplete-*.crx"
 $DeleteCrx   = $false  # Set to $true if you also want the script to delete local .crx files
 
-# Resolve the folder where this script lives
-$ScriptDir = if ([string]::IsNullOrWhiteSpace($PSScriptRoot)) { (Get-Location).Path } else { $PSScriptRoot }
+# Resolve the repo root (the parent of the scripts folder, where the .crx lives)
+$ScriptDir = Split-Path -Parent $(if ([string]::IsNullOrWhiteSpace($PSScriptRoot)) { (Get-Location).Path } else { $PSScriptRoot })
 
 # 1. Force-close Chrome completely
 taskkill /F /IM chrome.exe /T 2>$null
@@ -45,7 +45,7 @@ if (Test-Path -Path $PolicyBase) {
     Write-Host "Cleaned up local Chrome policy keys." -ForegroundColor Yellow
 }
 
-# 4. Optionally delete local .crx files in the script's folder
+# 4. Optionally delete local .crx files in the repo root
 if ($DeleteCrx) {
     $CrxFiles = Get-ChildItem -Path $ScriptDir -Filter $CrxPattern -ErrorAction SilentlyContinue
     foreach ($File in $CrxFiles) {

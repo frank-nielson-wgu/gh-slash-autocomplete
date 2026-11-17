@@ -1,10 +1,11 @@
 # Builds dist/gh-slash-autocomplete-<version>.zip for upload to the Chrome Web Store.
 $ErrorActionPreference = 'Stop'
-Set-Location $PSScriptRoot
+$root = Split-Path -Parent $PSScriptRoot
+Set-Location $root
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 # The extension lives in src/; its files go into the zip at paths relative to that folder.
-$src = Join-Path $PSScriptRoot "src"
+$src = Join-Path $root "src"
 
 $files = @(
   'manifest.json', 'background.js',
@@ -14,7 +15,7 @@ $files = @(
 ) + (Get-ChildItem (Join-Path $src icons) -File | ForEach-Object { "icons/$($_.Name)" })
 
 $version = (Get-Content (Join-Path $src manifest.json) -Raw | ConvertFrom-Json).version
-$zip = Join-Path $PSScriptRoot "dist/gh-slash-autocomplete-$version.zip"
+$zip = Join-Path $root "dist/gh-slash-autocomplete-$version.zip"
 
 New-Item -ItemType Directory -Force dist | Out-Null
 Remove-Item $zip -ErrorAction SilentlyContinue

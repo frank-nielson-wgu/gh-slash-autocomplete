@@ -1,1 +1,60 @@
-# GitHub Bot Slash-Command Autocomplete — Local Installation Guide\n\nThis folder contains the packaged Chrome extension (`.crx`) along with PowerShell scripts to install, update, and uninstall it on Windows—including support for managed Chrome browsers.\n\n## Folder Contents\n* `gh-slash-autocomplete-*.crx` — The packaged Chrome extension binary.\n* `install-gh-slash-extension.bat` — Registers the extension in Chrome and pins it to the toolbar.\n* `uninstall-gh-slash-extension.bat` — Removes the extension's registry and policy entries.\n\n---\n\n## Installation & Updates\n\n> **Important:** Keep this folder in a **permanent location** on your computer (such as `C:\code\` or a cloned Git repository) before installing. Chrome references the `.crx` file directly from this path—moving or deleting the folder later will break the extension.\n\n### 1. Run the Installation Script\n1. Double-click **`install-gh-slash-extension.ps1`** \n2. Click **Yes** when prompted for Administrator (UAC) permission.\n   * *Note: The script will automatically close open Chrome windows, detect the newest `.crx` version in this folder, and configure the Windows Registry.*\n3. Press **Enter** to close the PowerShell window once it finishes.\n\n### 2. Enable the Extension (One-Time Step)\nBecause this extension is installed locally rather than through the public Chrome Web Store, Chrome keeps it toggled off by default on first install:\n1. Open **Google Chrome**.\n2. Navigate to **`chrome://extensions`**.\n3. Find **GitHub bot slash-command autocomplete** and flip its **enable toggle switch ON**.\n4. The extension icon will automatically pin to your Chrome toolbar and stay enabled across future restarts.\n\n### Updating to a Newer Version\n1. Place the new `gh-slash-autocomplete-<version>.crx` file in this folder.\n2. Re-run **`install-gh-slash-extension.bat`**—it will automatically detect the newest `.crx` file, read its version number, and update Chrome.\n\n---\n\n## Uninstalling / Rollback\n\n1. Double-click **`uninstall-gh-slash-extension.bat`** \n2. Click **Yes** when prompted for Administrator permission.\n3. Open Chrome, go to **`chrome://extensions`**, and click **Remove** on the extension card if it is still listed.\n\n---\n\n## Troubleshooting\n\n* **Extension doesn't appear after running the install script:**\n  * Make sure **all** Chrome windows were closed before reopening Chrome.\n  * Ensure the `.crx` file is in the **exact same folder** as `install-gh-slash-extension.ps1`.\n* **Script is blocked by Windows Execution Policy:**\n  * Open PowerShell in this folder and run:\n    ```powershell\n    powershell -ExecutionPolicy Bypass -File .\install-gh-slash-extension.ps1\n    ```\n
+# GitHub Bot Slash-Command Autocomplete — Local Installation Guide
+
+This repo contains the packaged Chrome extension (`.crx`) along with PowerShell scripts to install, update, and uninstall it on Windows, including support for managed Chrome browsers.
+
+## Folder Contents
+
+* `gh-slash-autocomplete-*.crx` — The packaged Chrome extension binary (in the repo root).
+* `scripts/install-gh-slash-extension.bat` — Registers the extension in Chrome and pins it to the toolbar.
+* `scripts/uninstall-gh-slash-extension.bat` — Removes the extension's registry and policy entries.
+* `scripts/pack-extension.bat` — Builds the `.crx` from `src/`.
+
+The `.bat` files are thin wrappers around the `.ps1` scripts of the same name in `scripts/`.
+
+---
+
+## Installation & Updates
+
+> **Important:** Keep this folder in a **permanent location** on your computer (such as `C:\code\` or a cloned Git repository) before installing. Chrome references the `.crx` file directly from this path. Moving or deleting the folder later will break the extension.
+
+### 1. Run the Installation Script
+
+1. Double-click **`scripts\install-gh-slash-extension.bat`**.
+2. Click **Yes** when prompted for Administrator (UAC) permission.
+   * *Note: The script will automatically close open Chrome windows, detect the newest `.crx` version in the repo root, and configure the Windows Registry.*
+3. Press **Enter** to close the PowerShell window once it finishes.
+
+### 2. Enable the Extension (One-Time Step)
+
+Because this extension is installed locally rather than through the public Chrome Web Store, Chrome keeps it toggled off by default on first install:
+
+1. Open **Google Chrome**.
+2. Navigate to **`chrome://extensions`**.
+3. Find **GitHub bot slash-command autocomplete** and flip its **enable toggle switch ON**.
+4. The extension icon will automatically pin to your Chrome toolbar and stay enabled across future restarts.
+
+### Updating to a Newer Version
+
+1. Place the new `gh-slash-autocomplete-<version>.crx` file in the repo root (the folder above `scripts/`).
+2. Re-run **`scripts\install-gh-slash-extension.bat`**. It will automatically detect the newest `.crx` file, read its version number, and update Chrome.
+
+---
+
+## Uninstalling / Rollback
+
+1. Double-click **`scripts\uninstall-gh-slash-extension.bat`**.
+2. Click **Yes** when prompted for Administrator permission.
+3. Open Chrome, go to **`chrome://extensions`**, and click **Remove** on the extension card if it is still listed.
+
+---
+
+## Troubleshooting
+
+* **Extension doesn't appear after running the install script:**
+  * Make sure **all** Chrome windows were closed before reopening Chrome.
+  * Ensure the `.crx` file is in the **repo root**, the folder that contains `scripts/`.
+* **Script is blocked by Windows Execution Policy:**
+  * Open PowerShell in the repo root and run:
+    ```powershell
+    powershell -ExecutionPolicy Bypass -File .\scripts\install-gh-slash-extension.ps1
+    ```

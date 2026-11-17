@@ -40,12 +40,12 @@ There is no build step. After editing a file, click the reload icon on the exten
 | `src/options/` | Options page: `options.html`, `options.css`, `options.js`, `validation.js` (name, argument and owner checks), `share.js` (export and import) |
 | `src/shared/` | Used by both: `matching.js`, `search.js` |
 | `src/icons/` | Toolbar and store icons |
-| `pack.ps1` | Builds the Web Store zip |
+| `scripts/zip-extension.ps1` | Builds the Web Store zip |
 
 ## Pack
 
 ```powershell
-./pack.ps1
+./scripts/zip-extension.ps1
 ```
 
 This writes `dist/gh-slash-autocomplete-<version>.zip`, containing only the files the extension

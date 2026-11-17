@@ -1,5 +1,5 @@
 # --- CONFIGURATION ---
-$ScriptDir = if ([string]::IsNullOrWhiteSpace($PSScriptRoot)) { (Get-Location).Path } else { $PSScriptRoot }
+$ScriptDir = Split-Path -Parent $(if ([string]::IsNullOrWhiteSpace($PSScriptRoot)) { (Get-Location).Path } else { $PSScriptRoot })
 $SourceDir = Join-Path $ScriptDir "src"             # Path to the folder containing manifest.json
 $PemKey    = "C:\code\gh-slash-autocomplete.pem" # Path to your permanent .pem private key
 $OutDir    = $ScriptDir                             # Where to save the final .crx
