@@ -82,15 +82,36 @@ if ([string]::IsNullOrWhiteSpace($Version)) {
 Write-Host "Detected $($LatestCrx.Name) -> Version $Version" -ForegroundColor Cyan
 
 # 3. Chrome is left running. It rewrites its Preferences files when it exits, so a running Chrome would undo the
-#    blacklist cleanup below; in that case the cleanup is skipped and the user is asked to restart Chrome instead.
+#    blacklist cleanup below. If Chrome is running and remembers an earlier uninstall of this extension, the
+#    install stops here and asks the user to close Chrome and run it again.
 $ChromeRunning = [bool](Get-Process -Name chrome -ErrorAction SilentlyContinue)
 
 # 4. Dynamically scan ALL Chrome profiles for the current user ($env:LOCALAPPDATA)
 $UserDataDir = Join-Path $env:LOCALAPPDATA "Google\Chrome\User Data"
+$ProfileDirs = @()
+if (Test-Path $UserDataDir) {
+    $ProfileDirs = @(Get-ChildItem -Path $UserDataDir -Directory | Where-Object { $_.Name -eq "Default" -or $_.Name -like "Profile *" })
+}
+
 if ($ChromeRunning) {
-    Write-Host "Chrome is running, so its profiles were left alone. If you removed this extension from Chrome before, close Chrome completely and run this installer again." -ForegroundColor Yellow
-} elseif (Test-Path $UserDataDir) {
-    $ProfileDirs = Get-ChildItem -Path $UserDataDir -Directory | Where-Object { $_.Name -eq "Default" -or $_.Name -like "Profile *" }
+    # Reading the Preferences files is safe while Chrome runs; Chrome lists an extension in
+    # extensions.external_uninstalls when the user removed it, and won't reinstall it until that entry is cleared.
+    $PreviouslyUninstalled = @()
+    foreach ($Profile in $ProfileDirs) {
+        try {
+            $Json = [System.IO.File]::ReadAllText((Join-Path $Profile.FullName "Preferences")) | ConvertFrom-Json
+            if ($null -ne $Json.extensions -and $Json.extensions.external_uninstalls -contains $ExtensionID) {
+                $PreviouslyUninstalled += $Profile.Name
+            }
+        } catch { }  # a profile we can't read is skipped
+    }
+
+    if ($PreviouslyUninstalled.Count -gt 0) {
+        Write-Error "Chrome remembers that this extension was removed earlier (profile: $($PreviouslyUninstalled -join ', ')), and the install can't clear that while Chrome is running. Close Chrome completely (all windows), then run this installer again. Nothing was changed."
+        Wait-ForEnter "Press Enter to exit"
+        exit 1
+    }
+} elseif ($ProfileDirs.Count -gt 0) {
 
     foreach ($Profile in $ProfileDirs) {
         $PrefFiles = @(

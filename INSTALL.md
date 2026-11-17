@@ -67,7 +67,7 @@ Because this extension is installed locally rather than through the public Chrom
 
 * **Extension doesn't appear after running the install script:**
   * Make sure **all** Chrome windows were closed before reopening Chrome.
-  * If you removed the extension from Chrome earlier, close Chrome completely and run the install script again. With Chrome running, the script can't clear Chrome's record of the removal.
+  * If the script stops with "Chrome remembers that this extension was removed earlier", close Chrome completely (all windows) and run the install script again. Chrome keeps a record of the removal that the script can only clear while Chrome is closed. Nothing is changed when it stops.
   * Ensure the `.crx` file is in the **repo root**, the folder that contains `scripts/`.
 * **Script is blocked by Windows Execution Policy:**
   * Open PowerShell in the repo root and run:
