@@ -105,8 +105,6 @@ jobs:
           Add-Type -AssemblyName System.IO.Compression.FileSystem
           $names = [IO.Compression.ZipFile]::OpenRead((Resolve-Path $zip)).Entries.FullName
           foreach ($expected in "gh-slash-autocomplete-$version.crx", 'install-gh-slash-extension.bat', 'scripts/install-gh-slash-extension.ps1', 'uninstall-gh-slash-extension.bat', 'scripts/uninstall-gh-slash-extension.ps1') {
-            if ($names -notcontains "gh-slash-autocomplete/$expected") { throw "gh-slash-autocomplete/$expected is missing from $zip" }
+            if ($names -notcontains $expected) { throw "$expected is missing from $zip" }
           }
-          $stray = $names | Where-Object { -not $_.StartsWith('gh-slash-autocomplete/') }
-          if ($stray) { throw "Files outside the gh-slash-autocomplete folder: $stray" }
           "$zip contains $($names.Count) files."

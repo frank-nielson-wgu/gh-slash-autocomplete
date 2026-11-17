@@ -4,13 +4,13 @@
 >
 > If you downloaded `gh-slash-autocomplete-install-<version>.zip` from the GitHub releases page, this is all you need:
 >
-> 1. **Unzip it somewhere permanent** (such as `C:\code`). Everything unpacks into a `gh-slash-autocomplete` folder, so you don't need to create one first. Chrome loads the `.crx` straight from that folder, so don't move or delete it afterwards.
-> 2. Open the `gh-slash-autocomplete` folder and double-click **`install-gh-slash-extension.bat`** (next to the `.crx`) and click **Yes** at the Administrator prompt.
+> 1. **Unzip it into a permanent folder** (such as `C:\code\gh-slash-autocomplete`). Chrome loads the `.crx` straight from this folder, so don't move or delete it afterwards.
+> 2. Double-click **`install-gh-slash-extension.bat`** (next to the `.crx`) and click **Yes** at the Administrator prompt.
 > 3. Open Chrome, go to `chrome://extensions`, and turn the extension **ON** (one time only).
 >
-> To update, unzip the newer release in the same place (replacing the files when asked) and run the installer again. To remove it, run `uninstall-gh-slash-extension.bat`.
+> To update, unzip the newer release into the same folder (replacing the files when asked) and run the installer again. To remove it, run `uninstall-gh-slash-extension.bat`.
 >
-> The rest of this guide covers the same steps in more detail. Where it says "repo root", read "the `gh-slash-autocomplete` folder you unzipped", and drop the `scripts\` prefix from the `.bat` paths: in the zip they sit next to the `.crx` (the `.ps1` files they call stay in `scripts\`). The `pack-extension` script is only in the repository, not the zip.
+> The rest of this guide covers the same steps in more detail. Where it says "repo root", read "the folder you unzipped into", and drop the `scripts\` prefix from the `.bat` paths: in the zip they sit next to the `.crx` (the `.ps1` files they call stay in `scripts\`). The `pack-extension` script is only in the repository, not the zip.
 
 ---
 
