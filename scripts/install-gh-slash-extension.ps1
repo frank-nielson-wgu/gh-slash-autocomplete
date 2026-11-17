@@ -196,11 +196,29 @@ New-ItemProperty -Path $PolicyPath -Name "ExtensionSettings" -Value $CompactJson
 
 Write-Host "`nSuccessfully registered $ExtensionID v$Version!" -ForegroundColor Green
 if ($ClosedChrome -and $ChromeExe -and (Test-Path $ChromeExe)) {
-    # This script runs as Administrator; start Chrome with a normal user token so it doesn't run elevated.
-    # --restore-last-session brings back the tabs from before we closed it.
-    runas.exe /trustlevel:0x20000 "`"$ChromeExe`" --restore-last-session" | Out-Null
-    Write-Host "Reopened Chrome." -ForegroundColor Cyan
-    Write-Host "Next steps: In Chrome, go to chrome://extensions -> toggle the extension ON once." -ForegroundColor Cyan
+    # This script runs as Administrator, and Chrome must not. Opening a shortcut through Explorer (which runs as the
+    # normal user) starts Chrome without elevation and lets us pass --restore-last-session to bring back the tabs.
+    $Shortcut = Join-Path $env:TEMP "reopen-chrome-$([guid]::NewGuid()).lnk"
+    try {
+        $Link = (New-Object -ComObject WScript.Shell).CreateShortcut($Shortcut)
+        $Link.TargetPath = $ChromeExe
+        $Link.Arguments = "--restore-last-session"
+        $Link.Save()
+        Start-Process -FilePath explorer.exe -ArgumentList "`"$Shortcut`""
+
+        $Deadline = (Get-Date).AddSeconds(10)
+        while (-not (Get-Process -Name chrome -ErrorAction SilentlyContinue) -and (Get-Date) -lt $Deadline) { Start-Sleep -Milliseconds 250 }
+    } finally {
+        Remove-Item $Shortcut -Force -ErrorAction SilentlyContinue
+    }
+
+    if (Get-Process -Name chrome -ErrorAction SilentlyContinue) {
+        Write-Host "Reopened Chrome." -ForegroundColor Cyan
+        Write-Host "Next steps: In Chrome, go to chrome://extensions -> toggle the extension ON once." -ForegroundColor Cyan
+    } else {
+        Write-Warning "Couldn't reopen Chrome automatically."
+        Write-Host "Next steps: Open Chrome -> go to chrome://extensions -> toggle the extension ON once." -ForegroundColor Cyan
+    }
 } else {
     Write-Host "Next steps: Open Chrome -> go to chrome://extensions -> toggle the extension ON once." -ForegroundColor Cyan
 }
