@@ -36,7 +36,7 @@ The `.bat` files are thin wrappers around the `.ps1` scripts of the same name in
 1. Double-click **`scripts\install-gh-slash-extension.bat`**.
 2. Click **Yes** when prompted for Administrator (UAC) permission.
    * *Note: The script detects the newest `.crx` version in the repo root and configures the Windows Registry. If Chrome is open, it asks whether to close it (a normal close, like clicking the X on each window; and reopens it with your tabs when the install finishes). Chrome must be closed for the install to continue.*
-3. Press **Enter** to close the PowerShell window once it finishes (if the installer reopened Chrome for you, the window closes by itself).
+3. Press **Enter** to close the PowerShell window once it finishes.
 
 ### 2. Enable the Extension (One-Time Step)
 
