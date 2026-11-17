@@ -2,22 +2,20 @@ GitHub bot slash-command autocomplete - Installation
 =====================================================
 
 This folder holds the packaged Chrome extension (gh-slash-autocomplete-<version>.crx)
-and the scripts that install, update and uninstall it on Windows, macOS and Linux.
-On Windows they also work on managed Chrome browsers.
+and the scripts that install, update and uninstall it on Windows, including on
+managed Chrome browsers. On macOS and Linux, install it by hand: see "MANUAL
+INSTALL".
 
   gh-slash-autocomplete-<version>.crx    The extension.
-  install-gh-slash-extension.bat         Installs or updates the extension (Windows).
-  uninstall-gh-slash-extension.bat       Removes the extension (Windows).
-  install-gh-slash-extension.command     Double-click to install or update (macOS).
-  uninstall-gh-slash-extension.command   Double-click to remove the extension (macOS).
-  scripts\                               The scripts the files above run, and the helpers
-                                         they share: PowerShell scripts for Windows, shell
-                                         scripts for macOS and Linux.
+  install-gh.bat                         Installs or updates the extension.
+  uninstall-gh.bat                       Removes the extension.
+  scripts\                               The PowerShell scripts the .bat files run, and
+                                         the helpers they share.
   src\                                   The extension's source files, for the manual install
                                          (see "MANUAL INSTALL").
 
-The sections below are for Windows. macOS and Linux are covered in the last
-section, "MACOS AND LINUX".
+The sections below are for Windows, except "MANUAL INSTALL", which works on any
+operating system.
 
 
 BEFORE YOU START
@@ -33,7 +31,7 @@ folder after installing. If you do, the extension stops working.
 INSTALL
 -------
 
-1. Double-click install-gh-slash-extension.bat.
+1. Double-click install-gh.bat.
 
 2. Click Yes when Windows asks for Administrator permission.
 
@@ -65,7 +63,7 @@ UPDATE
 ------
 
 1. Unzip the newer release into the SAME folder, replacing the files when asked.
-2. Run install-gh-slash-extension.bat again. It finds the newest .crx, reads its
+2. Run install-gh.bat again. It finds the newest .crx, reads its
    version number and updates Chrome.
 
 If an older .crx is still in the folder, the installer uses the most recently
@@ -76,8 +74,9 @@ one.
 MANUAL INSTALL (WITHOUT THE INSTALLER)
 --------------------------------------
 
-Use this on any operating system if you can't run the installer scripts, or
-just want to try the extension. Chrome loads the extension straight from a
+Use this on macOS and Linux, which have no installer script, or on any
+operating system if you can't run the installer scripts or just want to try
+the extension. Chrome loads the extension straight from a
 folder of source files, so this uses the "src" folder in this release, not the
 .crx. (Dragging the .crx onto chrome://extensions doesn't work: Chrome blocks
 extensions that don't come from the Chrome Web Store.)
@@ -114,7 +113,7 @@ Notes:
 UNINSTALL
 ---------
 
-1. Double-click uninstall-gh-slash-extension.bat.
+1. Double-click uninstall-gh.bat.
 
 2. Click Yes when Windows asks for Administrator permission.
 
@@ -138,7 +137,7 @@ TROUBLESHOOTING
 The extension doesn't appear after installing
   - Make sure Chrome was fully closed and reopened. Chrome only reads the new
     registration when it starts.
-  - Check that the .crx is in the same folder as install-gh-slash-extension.bat.
+  - Check that the .crx is in the same folder as install-gh.bat.
 
 The installer stopped because Chrome is still running
   - Close Chrome completely (all windows, and any Chrome icon in the system
@@ -148,98 +147,3 @@ Windows blocks the script (execution policy)
   - Open PowerShell in this folder and run:
 
       powershell -ExecutionPolicy Bypass -File .\scripts\install-gh-slash-extension.ps1
-
-
-MACOS AND LINUX
----------------
-
-These steps work for Google Chrome on macOS and Linux, and for Chromium on
-Linux. The installer sets up every one of those browsers it finds. Chromium
-installed as a snap or Flatpak is not supported, and neither are other
-Chrome-based browsers.
-
-Unzip the release into a PERMANENT folder, for example ~/gh-slash-autocomplete.
-Chrome loads the .crx straight from that folder, so do not move or delete it
-after installing.
-
-Install or update:
-
-1. On a Mac, double-click install-gh-slash-extension.command. It opens
-   Terminal and runs the installer. (Linux has no double-click launcher; use
-   the terminal command further down.) The first time, macOS may say it can't
-   check the file for malicious software; click Done, open System Settings ->
-   Privacy & Security, scroll down and click "Open Anyway" next to the
-   file's name, then double-click it again.
-
-   Or, on a Mac or Linux, open a terminal in the folder and run:
-
-     ./scripts/install-gh-slash-extension.sh
-
-   If your system says "permission denied", run it as:
-   bash scripts/install-gh-slash-extension.sh
-
-   Run it as yourself. Do not use sudo; the script asks for sudo itself only
-   when it needs it.
-
-2. If the browser is open, the installer asks "Close it now? (y/n)". Press y or n
-   (no Enter needed). y closes Chrome the normal way and reopens it with your
-   tabs when it finishes. n stops without changing anything.
-
-3. Turn the extension on (one time only): go to chrome://extensions and switch
-   "GitHub bot slash-command autocomplete" ON.
-
-4. Pin the icon.
-
-   - Linux: the installer pins it for you. It asks for your sudo password to
-     write a browser policy file: /etc/opt/chrome/policies/managed/
-     gh-slash-autocomplete.json for Chrome, and /etc/chromium/policies/managed/
-     gh-slash-autocomplete.json for Chromium. If you decline, the extension
-     still installs; pin the icon yourself with the puzzle-piece button in the
-     browser's toolbar.
-   - macOS: pin the icon yourself with the puzzle-piece button.
-
-To update, unzip the newer release over the same folder and run the installer
-again. It uses the newest .crx it finds.
-
-Uninstall:
-
-   Double-click uninstall-gh-slash-extension.command (Mac), or run:
-
-     ./scripts/uninstall-gh-slash-extension.sh
-
-If the browser is open, it offers to restart it, as on Windows. On Linux it
-also removes the policy files (asking for your sudo password). Then go to
-chrome://extensions and click Remove if the extension is still listed.
-
-If macOS says it is blocking Chrome's files ("Operation not permitted"):
-Some Macs stop terminal apps from changing Chrome's files. The installer
-checks this before it closes Chrome or changes anything, and if it is blocked
-it installs for every user of the Mac instead:
-
-  - It asks for your administrator password.
-  - It keeps a copy of the .crx in /Library/Application Support/
-    gh-slash-autocomplete, so the folder you unzipped no longer has to stay
-    in place. Updating means running the installer from the newer release.
-  - It skips the cleanup of a previous removal of the extension, which needs
-    the blocked files. If you removed the extension from Chrome before and it
-    doesn't come back, turn it on at chrome://extensions or allow the terminal
-    below and install again.
-
-The uninstaller removes this system-wide copy too, also asking for the
-administrator password.
-
-To install just for yourself instead:
-
-  1. Open System Settings -> Privacy & Security -> Full Disk Access.
-  2. Switch on the terminal app you run the script in (Terminal, iTerm, ...).
-     If it isn't listed, click + and add it.
-  3. Quit that terminal app completely (Cmd+Q), open it again, and run the
-     script again.
-
-If the installer says you need administrator rights and you don't have them,
-your Mac may be managed by your organization; ask your IT team. The manual
-install (above) doesn't need either permission.
-
-The installer needs perl (already on macOS and almost every Linux). Add
---no-pause to either script to run it without any prompts; Chrome is then left
-open and you restart it yourself.

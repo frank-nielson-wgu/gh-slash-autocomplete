@@ -1,6 +1,6 @@
 name: Test scripts
 
-# Smoke-tests the install scripts on real Windows, Linux and macOS runners (Windows is an administrator; Unix has passwordless sudo).
+# Smoke-tests the Windows scripts on a real Windows runner (which is an administrator and has Chrome).
 on:
   pull_request:
     paths: ['scripts/**', 'src/**', '.github/workflows/test-scripts.yml']
@@ -59,66 +59,6 @@ jobs:
           }
           "Registry entries removed."
 
-  install-uninstall-unix:
-    name: Install and uninstall (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Lint the scripts
-        if: runner.os == 'Linux'
-        run: shellcheck -x -S warning scripts/*.sh scripts/*.command
-
-      - name: Use the packed .crx fixture
-        run: cp tests/fixtures/gh-slash-autocomplete-*.crx .
-
-      - name: Pretend Chromium has been used too (Linux)
-        if: runner.os == 'Linux'
-        run: mkdir -p "$HOME/.config/chromium"
-
-      - name: Install
-        run: ./scripts/install-gh-slash-extension.sh --no-pause
-
-      - name: Check the registration
-        run: |
-          set -e
-          id=$(sed -n 's/^EXTENSION_ID="\(.*\)"/\1/p' scripts/lib-gh-slash-extension.sh)
-          crx=$(ls "$PWD"/gh-slash-autocomplete-*.crx | head -n 1)
-          version=$(basename "$crx" .crx); version=${version#gh-slash-autocomplete-}
-          if [ "$RUNNER_OS" = macOS ]; then
-            dirs=("$HOME/Library/Application Support/Google/Chrome")
-          else
-            dirs=("$HOME/.config/google-chrome" "$HOME/.config/chromium")
-            grep -q force_pinned /etc/opt/chrome/policies/managed/gh-slash-autocomplete.json
-            grep -q force_pinned /etc/chromium/policies/managed/gh-slash-autocomplete.json
-          fi
-          for dir in "${dirs[@]}"; do
-            json="$dir/External Extensions/$id.json"
-            cat "$json"
-            grep -q "\"external_crx\": \"$crx\"" "$json"
-            grep -q "\"external_version\": \"$version\"" "$json"
-          done
-
-      - name: Uninstall
-        run: ./scripts/uninstall-gh-slash-extension.sh --no-pause
-
-      - name: Check the registration is gone
-        run: |
-          set -e
-          id=$(sed -n 's/^EXTENSION_ID="\(.*\)"/\1/p' scripts/lib-gh-slash-extension.sh)
-          if [ "$RUNNER_OS" = macOS ]; then
-            test ! -e "$HOME/Library/Application Support/Google/Chrome/External Extensions/$id.json"
-          else
-            test ! -e "$HOME/.config/google-chrome/External Extensions/$id.json"
-            test ! -e "$HOME/.config/chromium/External Extensions/$id.json"
-            test ! -e /etc/opt/chrome/policies/managed/gh-slash-autocomplete.json
-            test ! -e /etc/chromium/policies/managed/gh-slash-autocomplete.json
-          fi
-
   pack:
     name: Pack
     runs-on: windows-latest
@@ -163,7 +103,7 @@ jobs:
           $zip = "dist/gh-slash-autocomplete-install-$version.zip"
           Add-Type -AssemblyName System.IO.Compression.FileSystem
           $names = [IO.Compression.ZipFile]::OpenRead((Resolve-Path $zip)).Entries.FullName
-          foreach ($expected in "gh-slash-autocomplete-$version.crx", 'install-gh-slash-extension.command', 'uninstall-gh-slash-extension.command', 'scripts/install-gh-slash-extension.sh', 'scripts/uninstall-gh-slash-extension.sh', 'scripts/lib-gh-slash-extension.sh', 'install-gh-slash-extension.bat', 'scripts/install-gh-slash-extension.ps1', 'uninstall-gh-slash-extension.bat', 'scripts/uninstall-gh-slash-extension.ps1', 'scripts/lib-gh-slash-extension.ps1', 'src/manifest.json', 'src/content/content.js') {
+          foreach ($expected in "gh-slash-autocomplete-$version.crx", 'install-gh.bat', 'scripts/install-gh-slash-extension.ps1', 'uninstall-gh.bat', 'scripts/uninstall-gh-slash-extension.ps1', 'scripts/lib-gh-slash-extension.ps1', 'src/manifest.json', 'src/content/content.js') {
             if ($names -notcontains $expected) { throw "$expected is missing from $zip" }
           }
           "$zip contains $($names.Count) files."
