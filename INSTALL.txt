@@ -68,9 +68,19 @@ UNINSTALL
 ---------
 
 1. Double-click uninstall-gh-slash-extension.bat.
+
 2. Click Yes when Windows asks for Administrator permission.
-3. Restart Chrome (close all of its windows, then reopen it). The uninstaller
-   does not close Chrome for you.
+
+3. If Chrome is open, the uninstaller asks "Close Chrome now? (y/n)", the same
+   way the installer does. Chrome has to restart before the removal takes
+   effect.
+
+   - y: Chrome is closed the normal way and reopened with your tabs when the
+     uninstall finishes. If it doesn't close within 5 seconds, you are asked
+     whether to try again.
+   - n: the uninstall carries on and leaves Chrome open. Restart Chrome
+     yourself afterwards (close all of its windows, then reopen it).
+
 4. Go to chrome://extensions and click Remove on the extension if it is still
    listed.
 
