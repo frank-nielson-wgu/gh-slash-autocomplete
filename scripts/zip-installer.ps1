@@ -11,7 +11,10 @@ if (-not (Test-Path (Join-Path $root $crx))) {
   throw "$crx not found in the repo root. Run scripts/pack-extension.ps1 first."
 }
 
-# Zip path -> file on disk.
+# Everything goes inside this folder in the zip, so unzipping doesn't spill files into the current folder.
+$folder = 'gh-slash-autocomplete'
+
+# Path inside the folder -> file on disk.
 $files = [ordered]@{
   $crx                                      = $crx
   'INSTALL.md'                              = 'INSTALL.md'
@@ -29,7 +32,7 @@ Remove-Item $zip -ErrorAction SilentlyContinue
 $archive = [IO.Compression.ZipFile]::Open($zip, 'Create')
 try {
   foreach ($entry in $files.GetEnumerator()) {
-    [void][IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, (Join-Path $root $entry.Value), $entry.Key)
+    [void][IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, (Join-Path $root $entry.Value), "$folder/$($entry.Key)")
   }
 } finally {
   $archive.Dispose()
