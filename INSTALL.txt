@@ -71,9 +71,9 @@ UNINSTALL
 
 2. Click Yes when Windows asks for Administrator permission.
 
-3. If Chrome is open, the uninstaller asks "Close Chrome now? (y/n)", the same
-   way the installer does. Chrome has to restart before the removal takes
-   effect.
+3. The uninstall doesn't need Chrome closed, but Chrome only notices the
+   removal when it restarts. If Chrome is open, the uninstaller offers to
+   restart it for you: "Close Chrome now? (y/n)".
 
    - y: Chrome is closed the normal way and reopened with your tabs when the
      uninstall finishes. If it doesn't close within 5 seconds, you are asked
