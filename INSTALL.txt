@@ -1,0 +1,103 @@
+GitHub bot slash-command autocomplete - Installation
+=====================================================
+
+This folder holds the packaged Chrome extension (gh-slash-autocomplete-<version>.crx)
+and the scripts that install, update and uninstall it on Windows, including on
+managed Chrome browsers.
+
+  gh-slash-autocomplete-<version>.crx    The extension.
+  install-gh-slash-extension.bat         Installs or updates the extension.
+  uninstall-gh-slash-extension.bat       Removes the extension.
+  scripts\                               The PowerShell scripts the .bat files run.
+
+
+BEFORE YOU START
+----------------
+
+Unzip the release into a PERMANENT folder, for example
+C:\code\gh-slash-autocomplete.
+
+Chrome loads the .crx straight from that folder, so do not move or delete the
+folder after installing. If you do, the extension stops working.
+
+
+INSTALL
+-------
+
+1. Double-click install-gh-slash-extension.bat.
+
+2. Click Yes when Windows asks for Administrator permission.
+
+3. If Chrome is open, the installer says it must be closed and asks
+   "Close Chrome now? (y/n)". Press y or n (no Enter needed).
+
+   - y: the installer closes Chrome the normal way, as if you clicked the X on
+     each window, and reopens it with your tabs when it finishes. If Chrome
+     doesn't close within 5 seconds, it asks whether to try again.
+   - n: the installer stops without changing anything. Close Chrome yourself
+     (all windows, and any Chrome icon in the system tray), then run the
+     installer again.
+
+4. When the installer finishes, press Enter to close its window.
+
+5. Turn the extension on (one time only). Chrome keeps extensions that are not
+   from the Chrome Web Store switched off the first time:
+
+     a. Open Google Chrome. (The installer already reopened it if it closed it
+        for you.)
+     b. Go to chrome://extensions
+     c. Find "GitHub bot slash-command autocomplete" and switch it ON.
+
+   The extension icon is pinned to your toolbar automatically, and the
+   extension stays on after Chrome restarts.
+
+
+UPDATE
+------
+
+1. Unzip the newer release into the SAME folder, replacing the files when asked.
+2. Run install-gh-slash-extension.bat again. It finds the newest .crx, reads its
+   version number and updates Chrome.
+
+If an older .crx is still in the folder, the installer uses the most recently
+modified one, which is the one from the newer release. You can delete the old
+one.
+
+
+UNINSTALL
+---------
+
+1. Double-click uninstall-gh-slash-extension.bat.
+
+2. Click Yes when Windows asks for Administrator permission.
+
+3. The uninstall doesn't need Chrome closed, but Chrome only notices the
+   removal when it restarts. If Chrome is open, the uninstaller offers to
+   restart it for you: "Close Chrome now? (y/n)".
+
+   - y: Chrome is closed the normal way and reopened with your tabs when the
+     uninstall finishes. If it doesn't close within 5 seconds, you are asked
+     whether to try again.
+   - n: the uninstall carries on and leaves Chrome open. Restart Chrome
+     yourself afterwards (close all of its windows, then reopen it).
+
+4. Go to chrome://extensions and click Remove on the extension if it is still
+   listed.
+
+
+TROUBLESHOOTING
+---------------
+
+The extension doesn't appear after installing
+  - Make sure Chrome was fully closed and reopened. Chrome only reads the new
+    registration when it starts.
+  - Check that the .crx is in the same folder as install-gh-slash-extension.bat.
+
+The installer stopped because Chrome is still running
+  - Close Chrome completely (all windows, and any Chrome icon in the system
+    tray), then run the installer again. Nothing is changed when it stops.
+
+Windows blocks the script (execution policy)
+  - Open PowerShell in this folder and run:
+
+      powershell -ExecutionPolicy Bypass -File .\scripts\install-gh-slash-extension.ps1
