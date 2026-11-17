@@ -219,6 +219,31 @@ if ($ClosedChrome -and $ChromeExe -and (Test-Path $ChromeExe)) {
     if (Get-Process -Name chrome -ErrorAction SilentlyContinue) {
         Write-Host "Reopened Chrome." -ForegroundColor Cyan
         Write-Host "Next steps: In Chrome, go to chrome://extensions -> toggle the extension ON once." -ForegroundColor Cyan
+
+        # Chrome's window opens on top of this one; bring this window back to the front so the message stays visible.
+        # Windows only lets a process take the foreground right after input, so tap Alt first, and keep at it for a few
+        # seconds because Chrome may grab focus again as its windows finish opening.
+        try {
+            Add-Type -Namespace Win32 -Name Native -MemberDefinition @'
+[DllImport("kernel32.dll")] public static extern IntPtr GetConsoleWindow();
+[DllImport("user32.dll")] public static extern IntPtr GetAncestor(IntPtr hWnd, uint flags);
+[DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int cmd);
+[DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+[DllImport("user32.dll")] public static extern void keybd_event(byte vk, byte scan, uint flags, UIntPtr extra);
+'@
+            # In Windows Terminal the console window is hidden; its owner (GA_ROOTOWNER) is the visible terminal window.
+            $Window = [Win32.Native]::GetAncestor([Win32.Native]::GetConsoleWindow(), 3)
+            if ($Window -ne [IntPtr]::Zero) {
+                $Until = (Get-Date).AddSeconds(5)
+                while ((Get-Date) -lt $Until) {
+                    [Win32.Native]::keybd_event(0x12, 0, 0, [UIntPtr]::Zero)  # Alt down
+                    [Win32.Native]::keybd_event(0x12, 0, 2, [UIntPtr]::Zero)  # Alt up
+                    [void][Win32.Native]::ShowWindow($Window, 9)              # restore if minimized
+                    [void][Win32.Native]::SetForegroundWindow($Window)
+                    Start-Sleep -Milliseconds 500
+                }
+            }
+        } catch { }  # focus is a nicety; never fail the install over it
     } else {
         Write-Warning "Couldn't reopen Chrome automatically after 4 tries. Please start Chrome yourself."
         Write-Host "Next steps: Open Chrome -> go to chrome://extensions -> toggle the extension ON once." -ForegroundColor Cyan
