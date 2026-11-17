@@ -1,0 +1,83 @@
+name: Test scripts
+
+# Smoke-tests the Windows scripts on a real Windows runner (which is an administrator and has Chrome).
+on:
+  pull_request:
+    paths: ['scripts/**', 'src/**', '.github/workflows/test-scripts.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  install-uninstall:
+    name: Pack, install and uninstall
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pack a .crx with a throwaway key
+        shell: bash
+        run: |
+          # The real signing key is private; a throwaway one is enough to test the install scripts.
+          openssl genrsa 2048 | openssl pkcs8 -topk8 -nocrypt -out "$RUNNER_TEMP/test.pem"
+          powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pack-extension.ps1 -NoPause -PemKey "$(cygpath -w "$RUNNER_TEMP/test.pem")"
+          ls gh-slash-autocomplete-*.crx
+
+      - name: Install
+        shell: powershell
+        run: ./scripts/install-gh-slash-extension.ps1 -NoPause
+
+      - name: Check the registry entries
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $id = [regex]::Match((Get-Content scripts/install-gh-slash-extension.ps1 -Raw), '\$ExtensionID = "(\w+)"').Groups[1].Value
+          $version = (Get-Content src/manifest.json -Raw | ConvertFrom-Json).version
+          $crx = (Get-ChildItem gh-slash-autocomplete-*.crx | Select-Object -First 1).FullName
+          foreach ($key in "HKLM:\SOFTWARE\Google\Chrome\Extensions\$id", "HKLM:\SOFTWARE\WOW6432Node\Google\Chrome\Extensions\$id") {
+            $item = Get-ItemProperty -Path $key
+            if ($item.path -ne $crx) { throw "$key path is '$($item.path)', expected '$crx'" }
+            if ($item.version -ne $version) { throw "$key version is '$($item.version)', expected '$version'" }
+          }
+          $settings = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Google\Chrome").ExtensionSettings | ConvertFrom-Json
+          if ($settings.$id.toolbar_pin -ne 'force_pinned') { throw "ExtensionSettings policy is missing or wrong for $id" }
+          "Registry entries for $id v$version look right."
+
+      - name: Uninstall
+        shell: powershell
+        run: ./scripts/uninstall-gh-slash-extension.ps1 -NoPause
+
+      - name: Check the registry entries are gone
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $id = [regex]::Match((Get-Content scripts/install-gh-slash-extension.ps1 -Raw), '\$ExtensionID = "(\w+)"').Groups[1].Value
+          foreach ($key in "HKLM:\SOFTWARE\Google\Chrome\Extensions\$id", "HKLM:\SOFTWARE\WOW6432Node\Google\Chrome\Extensions\$id") {
+            if (Test-Path $key) { throw "$key was not removed" }
+          }
+          if ($null -ne (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Google\Chrome" -ErrorAction SilentlyContinue).ExtensionSettings) {
+            throw "ExtensionSettings policy was not removed"
+          }
+          "Registry entries removed."
+
+  zip:
+    name: Web Store zip
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the zip
+        shell: pwsh
+        run: ./scripts/zip-extension.ps1
+
+      - name: Check the zip
+        shell: pwsh
+        run: |
+          $version = (Get-Content src/manifest.json -Raw | ConvertFrom-Json).version
+          $zip = "dist/gh-slash-autocomplete-$version.zip"
+          if (-not (Test-Path $zip)) { throw "$zip was not created" }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $names = [IO.Compression.ZipFile]::OpenRead((Resolve-Path $zip)).Entries.FullName
+          if ($names -notcontains 'manifest.json') { throw "manifest.json is not at the root of $zip" }
+          "$zip contains $($names.Count) files."

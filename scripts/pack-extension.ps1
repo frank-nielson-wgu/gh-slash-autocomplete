@@ -1,12 +1,16 @@
+param(
+    [switch]$NoPause,                                # skip the "Press Enter" prompt (for CI and automation)
+    [string]$PemKey = "C:\code\gh-slash-autocomplete.pem"  # Path to your permanent .pem private key
+)
+
 # --- CONFIGURATION ---
 $ScriptDir = Split-Path -Parent $(if ([string]::IsNullOrWhiteSpace($PSScriptRoot)) { (Get-Location).Path } else { $PSScriptRoot })
 $SourceDir = Join-Path $ScriptDir "src"             # Path to the folder containing manifest.json
-$PemKey    = "C:\code\gh-slash-autocomplete.pem" # Path to your permanent .pem private key
 $OutDir    = $ScriptDir                             # Where to save the final .crx
 
 function Exit-WithPause {
     param([int]$Code = 0)
-    Read-Host "`nPress Enter to close this window"
+    if (-not $NoPause) { Read-Host "`nPress Enter to close this window" }
     exit $Code
 }
 
