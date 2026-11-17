@@ -1,5 +1,13 @@
 param([switch]$NoPause)  # skip the "Press Enter" prompts (for CI and automation)
 function Wait-ForEnter([string]$Prompt) { if (-not $NoPause) { Read-Host $Prompt } }
+function Read-YesNo([string]$Prompt) {  # asks until the answer is y or n; returns $true for y
+    while ($true) {
+        $Reply = (Read-Host $Prompt).Trim()
+        if ($Reply -match '^(y|yes)$') { return $true }
+        if ($Reply -match '^(n|no)$') { return $false }
+        Write-Host "Please type y or n." -ForegroundColor Yellow
+    }
+}
 
 # --- 0. SELF-ELEVATE TO ADMINISTRATOR IF NEEDED ---
 $IsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
@@ -85,11 +93,11 @@ Write-Host "Detected $($LatestCrx.Name) -> Version $Version" -ForegroundColor Cy
 #    Offer to close it the way the user would (asking each window to close, not killing the process), or stop.
 if (Get-Process -Name chrome -ErrorAction SilentlyContinue) {
     Write-Host "Google Chrome is running and must be closed to finish the install." -ForegroundColor Yellow
-    $Answer = if ($NoPause) { 'n' } else { Read-Host "Close Chrome now? It will be reopened with your tabs when the install finishes (y/n)" }
+    $Answer = if ($NoPause) { $false } else { Read-YesNo "Close Chrome now? It will be reopened with your tabs when the install finishes (y/n)" }
 
     $ChromeExe = (Get-Process -Name chrome -ErrorAction SilentlyContinue | Where-Object { $_.Path } | Select-Object -First 1).Path
 
-    while ($Answer -match '^\s*y') {
+    while ($Answer) {
         # Same as clicking the X on each window; Chrome shuts down normally and saves its state.
         Get-Process -Name chrome -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 } | ForEach-Object { [void]$_.CloseMainWindow() }
 
@@ -98,7 +106,7 @@ if (Get-Process -Name chrome -ErrorAction SilentlyContinue) {
 
         if (-not (Get-Process -Name chrome -ErrorAction SilentlyContinue)) { break }
         Write-Host "Chrome didn't close. It may be waiting on a dialog or running in the background (check the system tray)." -ForegroundColor Yellow
-        $Answer = Read-Host "Try again (y/n)? Choose n to close Chrome yourself"
+        $Answer = Read-YesNo "Try again (y/n)? Choose n to close Chrome yourself"
     }
 
     if (Get-Process -Name chrome -ErrorAction SilentlyContinue) {
