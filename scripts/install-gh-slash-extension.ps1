@@ -27,6 +27,8 @@ if (-not $IsAdmin) {
     exit
 }
 
+if (-not $NoPause) { Write-Host ("`n" * 8) }  # blank lines first, so the output starts lower in the window
+
 # --- CONFIGURATION ---
 $ExtensionID = "aimpmkmhbohibcafaapmdhpmpmmofnpp"
 $CrxPattern  = "gh-slash-autocomplete-*.crx"
