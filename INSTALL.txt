@@ -7,8 +7,8 @@ managed Chrome browsers. On macOS and Linux, install it by hand: see "MANUAL
 INSTALL".
 
   gh-slash-autocomplete-<version>.crx    The extension.
-  install.bat                            Installs or updates the extension.
-  uninstall.bat                          Removes the extension.
+  install-gh.bat                         Installs or updates the extension.
+  uninstall-gh.bat                       Removes the extension.
   scripts\                               The PowerShell scripts the .bat files run, and
                                          the helpers they share.
   src\                                   The extension's source files, for the manual install
@@ -31,7 +31,7 @@ folder after installing. If you do, the extension stops working.
 INSTALL
 -------
 
-1. Double-click install.bat.
+1. Double-click install-gh.bat.
 
 2. Click Yes when Windows asks for Administrator permission.
 
@@ -63,7 +63,7 @@ UPDATE
 ------
 
 1. Unzip the newer release into the SAME folder, replacing the files when asked.
-2. Run install.bat again. It finds the newest .crx, reads its
+2. Run install-gh.bat again. It finds the newest .crx, reads its
    version number and updates Chrome.
 
 If an older .crx is still in the folder, the installer uses the most recently
@@ -113,7 +113,7 @@ Notes:
 UNINSTALL
 ---------
 
-1. Double-click uninstall.bat.
+1. Double-click uninstall-gh.bat.
 
 2. Click Yes when Windows asks for Administrator permission.
 
@@ -137,7 +137,7 @@ TROUBLESHOOTING
 The extension doesn't appear after installing
   - Make sure Chrome was fully closed and reopened. Chrome only reads the new
     registration when it starts.
-  - Check that the .crx is in the same folder as install.bat.
+  - Check that the .crx is in the same folder as install-gh.bat.
 
 The installer stopped because Chrome is still running
   - Close Chrome completely (all windows, and any Chrome icon in the system

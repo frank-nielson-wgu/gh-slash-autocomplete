@@ -103,7 +103,7 @@ jobs:
           $zip = "dist/gh-slash-autocomplete-install-$version.zip"
           Add-Type -AssemblyName System.IO.Compression.FileSystem
           $names = [IO.Compression.ZipFile]::OpenRead((Resolve-Path $zip)).Entries.FullName
-          foreach ($expected in "gh-slash-autocomplete-$version.crx", 'install.bat', 'scripts/install-gh-slash-extension.ps1', 'uninstall.bat', 'scripts/uninstall-gh-slash-extension.ps1', 'scripts/lib-gh-slash-extension.ps1', 'src/manifest.json', 'src/content/content.js') {
+          foreach ($expected in "gh-slash-autocomplete-$version.crx", 'install-gh.bat', 'scripts/install-gh-slash-extension.ps1', 'uninstall-gh.bat', 'scripts/uninstall-gh-slash-extension.ps1', 'scripts/lib-gh-slash-extension.ps1', 'src/manifest.json', 'src/content/content.js') {
             if ($names -notcontains $expected) { throw "$expected is missing from $zip" }
           }
           "$zip contains $($names.Count) files."

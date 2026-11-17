@@ -15,9 +15,9 @@ if (-not (Test-Path (Join-Path $root $crx))) {
 $files = [ordered]@{
   $crx                                      = $crx
   'INSTALL.txt'                             = 'INSTALL.txt'
-  'install.bat'                              = 'scripts/install.bat'
+  'install-gh.bat'                           = 'scripts/install-gh.bat'
   'scripts/install-gh-slash-extension.ps1'   = 'scripts/install-gh-slash-extension.ps1'
-  'uninstall.bat'                            = 'scripts/uninstall.bat'
+  'uninstall-gh.bat'                         = 'scripts/uninstall-gh.bat'
   'scripts/uninstall-gh-slash-extension.ps1' = 'scripts/uninstall-gh-slash-extension.ps1'
   'scripts/lib-gh-slash-extension.ps1'       = 'scripts/lib-gh-slash-extension.ps1'
 }
