@@ -14,7 +14,7 @@ if (-not $IsAdmin) {
 }
 
 # --- CONFIGURATION ---
-$ExtensionID = "aimpmkmhbohibcafaapmdhpmmofnpp"
+$ExtensionID = "aimpmkmhbohibcafaapmdhpmpmmofnpp"
 $CrxPattern  = "gh-slash-autocomplete-*.crx"
 
 # Resolve the repo root (the parent of the scripts folder, where the .crx lives)
