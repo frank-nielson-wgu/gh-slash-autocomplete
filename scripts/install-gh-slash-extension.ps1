@@ -87,25 +87,25 @@ if (Get-Process -Name chrome -ErrorAction SilentlyContinue) {
     Write-Host "Google Chrome is running and must be closed to finish the install." -ForegroundColor Yellow
     $Answer = if ($NoPause) { 'n' } else { Read-Host "Close Chrome now? Your tabs will be restored when you reopen it (y/n)" }
 
-    if ($Answer -match '^\s*y') {
+    while ($Answer -match '^\s*y') {
         # Same as clicking the X on each window; Chrome shuts down normally and saves its state.
         Get-Process -Name chrome -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 } | ForEach-Object { [void]$_.CloseMainWindow() }
 
-        $Deadline = (Get-Date).AddSeconds(30)
-        while ((Get-Process -Name chrome -ErrorAction SilentlyContinue) -and (Get-Date) -lt $Deadline) { Start-Sleep -Milliseconds 500 }
+        $Deadline = (Get-Date).AddSeconds(5)
+        while ((Get-Process -Name chrome -ErrorAction SilentlyContinue) -and (Get-Date) -lt $Deadline) { Start-Sleep -Milliseconds 250 }
 
-        if (Get-Process -Name chrome -ErrorAction SilentlyContinue) {
-            Write-Error "Chrome did not close. It may be waiting on a dialog or running in the background (check the system tray). Close it completely, then run this installer again. Nothing was changed."
-            Wait-ForEnter "Press Enter to exit"
-            exit 1
-        }
-        Start-Sleep -Seconds 1  # let Chrome finish writing its files
-        Write-Host "Chrome closed." -ForegroundColor Cyan
-    } else {
+        if (-not (Get-Process -Name chrome -ErrorAction SilentlyContinue)) { break }
+        Write-Host "Chrome didn't close. It may be waiting on a dialog or running in the background (check the system tray)." -ForegroundColor Yellow
+        $Answer = Read-Host "Try again (y/n)? Choose n to close Chrome yourself"
+    }
+
+    if (Get-Process -Name chrome -ErrorAction SilentlyContinue) {
         Write-Error "Close Chrome completely (all windows, and any icon in the system tray), then run this installer again. Nothing was changed."
         Wait-ForEnter "Press Enter to exit"
         exit 1
     }
+    Start-Sleep -Seconds 1  # let Chrome finish writing its files
+    Write-Host "Chrome closed." -ForegroundColor Cyan
 }
 
 # 4. Dynamically scan ALL Chrome profiles for the current user ($env:LOCALAPPDATA)
