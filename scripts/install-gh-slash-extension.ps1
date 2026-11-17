@@ -1,3 +1,6 @@
+param([switch]$NoPause)  # skip the "Press Enter" prompts (for CI and automation)
+function Wait-ForEnter([string]$Prompt) { if (-not $NoPause) { Read-Host $Prompt } }
+
 # --- 0. SELF-ELEVATE TO ADMINISTRATOR IF NEEDED ---
 $IsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $IsAdmin) {
@@ -6,7 +9,7 @@ if (-not $IsAdmin) {
         exit 1
     }
     Write-Host "Requesting Administrator privileges..." -ForegroundColor Yellow
-    Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
+    Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"$(if ($NoPause) { ' -NoPause' })"
     exit
 }
 
@@ -22,7 +25,7 @@ $LatestCrx = Get-ChildItem -Path $ScriptDir -Filter $CrxPattern | Sort-Object La
 
 if ($null -eq $LatestCrx) {
     Write-Error "CRITICAL: No .crx file matching '$CrxPattern' found in $ScriptDir! Keep the .crx in the repo root (the parent of the scripts folder)."
-    Read-Host "Press Enter to exit"
+    Wait-ForEnter "Press Enter to exit"
     exit 1
 }
 
@@ -43,7 +46,7 @@ for ($i = 0; $i -lt [Math]::Min($CrxBytes.Length - 4, 8192); $i++) {
 
 if ($ZipOffset -lt 0) {
     Write-Error "Could not locate embedded ZIP payload inside $CrxPath"
-    Read-Host "Press Enter to exit"
+    Wait-ForEnter "Press Enter to exit"
     exit 1
 }
 
@@ -55,7 +58,7 @@ try {
     
     if ($null -eq $ManifestEntry) {
         Write-Error "manifest.json not found inside $CrxPath"
-        Read-Host "Press Enter to exit"
+        Wait-ForEnter "Press Enter to exit"
         exit 1
     }
 
@@ -72,14 +75,14 @@ finally {
 
 if ([string]::IsNullOrWhiteSpace($Version)) {
     Write-Error "Could not read 'version' from manifest.json inside $CrxPath"
-    Read-Host "Press Enter to exit"
+    Wait-ForEnter "Press Enter to exit"
     exit 1
 }
 
 Write-Host "Detected $($LatestCrx.Name) -> Version $Version" -ForegroundColor Cyan
 
 # 3. Force-close Chrome completely
-taskkill /F /IM chrome.exe /T 2>$null
+cmd /c "taskkill /F /IM chrome.exe /T >nul 2>&1"; $global:LASTEXITCODE = 0  # run via cmd so a missing chrome.exe is neither an error nor the exit code
 Start-Sleep -Seconds 2
 
 # 4. Dynamically scan ALL Chrome profiles for the current user ($env:LOCALAPPDATA)
@@ -150,4 +153,4 @@ New-ItemProperty -Path $PolicyPath -Name "ExtensionSettings" -Value $CompactJson
 
 Write-Host "`nSuccessfully registered $ExtensionID v$Version!" -ForegroundColor Green
 Write-Host "Next steps: Open Chrome -> go to chrome://extensions -> toggle the extension ON once." -ForegroundColor Cyan
-Read-Host "`nPress Enter to close this window"
+Wait-ForEnter "`nPress Enter to close this window"

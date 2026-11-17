@@ -1,3 +1,6 @@
+param([switch]$NoPause)  # skip the "Press Enter" prompts (for CI and automation)
+function Wait-ForEnter([string]$Prompt) { if (-not $NoPause) { Read-Host $Prompt } }
+
 # --- 0. SELF-ELEVATE TO ADMINISTRATOR IF NEEDED ---
 $IsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $IsAdmin) {
@@ -6,7 +9,7 @@ if (-not $IsAdmin) {
         exit 1
     }
     Write-Host "Requesting Administrator privileges..." -ForegroundColor Yellow
-    Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
+    Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"$(if ($NoPause) { ' -NoPause' })"
     exit
 }
 
@@ -19,7 +22,7 @@ $DeleteCrx   = $false  # Set to $true if you also want the script to delete loca
 $ScriptDir = Split-Path -Parent $(if ([string]::IsNullOrWhiteSpace($PSScriptRoot)) { (Get-Location).Path } else { $PSScriptRoot })
 
 # 1. Force-close Chrome completely
-taskkill /F /IM chrome.exe /T 2>$null
+cmd /c "taskkill /F /IM chrome.exe /T >nul 2>&1"; $global:LASTEXITCODE = 0  # run via cmd so a missing chrome.exe is neither an error nor the exit code
 Start-Sleep -Seconds 2
 
 # 2. Remove External Extension Registry entries (64-bit & 32-bit)
@@ -56,4 +59,4 @@ if ($DeleteCrx) {
 
 Write-Host "`nRollback complete!" -ForegroundColor Green
 Write-Host "Next steps: Open Chrome -> go to chrome://extensions -> click 'Remove' on the extension card if it still appears." -ForegroundColor Cyan
-Read-Host "`nPress Enter to close this window"
+Wait-ForEnter "`nPress Enter to close this window"
