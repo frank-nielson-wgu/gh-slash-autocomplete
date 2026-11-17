@@ -19,6 +19,10 @@ $files = [ordered]@{
   'scripts/install-gh-slash-extension.ps1'   = 'scripts/install-gh-slash-extension.ps1'
   'uninstall-gh-slash-extension.bat'         = 'scripts/uninstall-gh-slash-extension.bat'
   'scripts/uninstall-gh-slash-extension.ps1' = 'scripts/uninstall-gh-slash-extension.ps1'
+  'scripts/lib-gh-slash-extension.ps1'       = 'scripts/lib-gh-slash-extension.ps1'
+  'install-gh-slash-extension.sh'            = 'scripts/install-gh-slash-extension.sh'
+  'uninstall-gh-slash-extension.sh'          = 'scripts/uninstall-gh-slash-extension.sh'
+  'lib-gh-slash-extension.sh'                = 'scripts/lib-gh-slash-extension.sh'
 }
 
 $zip = Join-Path $root "dist/gh-slash-autocomplete-install-$version.zip"
@@ -29,7 +33,9 @@ Remove-Item $zip -ErrorAction SilentlyContinue
 $archive = [IO.Compression.ZipFile]::Open($zip, 'Create')
 try {
   foreach ($entry in $files.GetEnumerator()) {
-    [void][IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, (Join-Path $root $entry.Value), $entry.Key)
+    $created = [IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, (Join-Path $root $entry.Value), $entry.Key)
+    # Mark the shell scripts you run (not the lib they source) executable (Unix mode 0755 in the high 16 bits) so they run after unzipping on macOS and Linux.
+    if ($entry.Key.EndsWith('.sh') -and $entry.Key -notlike 'lib-*') { $created.ExternalAttributes = 0x81ED0000 }
   }
 } finally {
   $archive.Dispose()

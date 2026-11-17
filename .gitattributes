@@ -1,3 +1,6 @@
 # Windows scripts must keep CRLF line endings, regardless of core.autocrlf.
 *.ps1 text eol=crlf
 *.bat text eol=crlf
+
+# Shell scripts must keep LF line endings, or bash fails on the carriage returns.
+*.sh text eol=lf
