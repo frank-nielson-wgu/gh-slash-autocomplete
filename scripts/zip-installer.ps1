@@ -14,7 +14,7 @@ if (-not (Test-Path (Join-Path $root $crx))) {
 # Path inside the zip -> file on disk.
 $files = [ordered]@{
   $crx                                      = $crx
-  'INSTALL.md'                              = 'INSTALL.md'
+  'INSTALL.txt'                             = 'INSTALL.txt'
   'install-gh-slash-extension.bat'           = 'scripts/install-gh-slash-extension.bat'
   'scripts/install-gh-slash-extension.ps1'   = 'scripts/install-gh-slash-extension.ps1'
   'uninstall-gh-slash-extension.bat'         = 'scripts/uninstall-gh-slash-extension.bat'
