@@ -27,7 +27,7 @@ if (-not $IsAdmin) {
     exit
 }
 
-if (-not $NoPause) { Write-Host ("`n" * 8) }  # blank lines first, so the output starts lower in the window
+if (-not $NoPause) { 1..8 | ForEach-Object { Write-Host ('#' * 60) } ; Write-Host "" }  # a block of # first, so the output starts lower in the window
 
 # --- CONFIGURATION ---
 $ExtensionID = "aimpmkmhbohibcafaapmdhpmpmmofnpp"
