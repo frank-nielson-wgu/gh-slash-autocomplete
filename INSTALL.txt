@@ -2,13 +2,23 @@ GitHub bot slash-command autocomplete - Installation
 =====================================================
 
 This folder holds the packaged Chrome extension (gh-slash-autocomplete-<version>.crx)
-and the scripts that install, update and uninstall it on Windows, including on
-managed Chrome browsers.
+and the scripts that install, update and uninstall it on Windows, macOS and Linux.
+On Windows they also work on managed Chrome browsers.
 
   gh-slash-autocomplete-<version>.crx    The extension.
-  install-gh-slash-extension.bat         Installs or updates the extension.
-  uninstall-gh-slash-extension.bat       Removes the extension.
-  scripts\                               The PowerShell scripts the .bat files run.
+  install-gh-slash-extension.bat         Installs or updates the extension (Windows).
+  uninstall-gh-slash-extension.bat       Removes the extension (Windows).
+  scripts\                               The PowerShell scripts the .bat files run, and
+                                         the helpers they share.
+  install-gh-slash-extension.sh          Installs or updates the extension (macOS and Linux).
+  uninstall-gh-slash-extension.sh        Removes the extension (macOS and Linux).
+  lib-gh-slash-extension.sh              Helpers the two .sh scripts share. Keep it in the
+                                         same folder as them.
+  src\                                   The extension's source files, for the manual install
+                                         (see "MANUAL INSTALL").
+
+The sections below are for Windows. macOS and Linux are covered in the last
+section, "MACOS AND LINUX".
 
 
 BEFORE YOU START
@@ -64,6 +74,44 @@ modified one, which is the one from the newer release. You can delete the old
 one.
 
 
+MANUAL INSTALL (WITHOUT THE INSTALLER)
+--------------------------------------
+
+Use this on any operating system if you can't run the installer scripts, or
+just want to try the extension. Chrome loads the extension straight from a
+folder of source files, so this uses the "src" folder in this release, not the
+.crx. (Dragging the .crx onto chrome://extensions doesn't work: Chrome blocks
+extensions that don't come from the Chrome Web Store.)
+
+1. Unzip the release into a PERMANENT folder, if you haven't already. The
+   folder you need is the one named "src", which contains manifest.json.
+
+   Chrome loads the extension from this folder, so do not move or delete it
+   after installing. If you do, the extension stops working.
+
+2. In Chrome, go to chrome://extensions
+
+3. Turn on "Developer mode" (the switch in the top-right corner).
+
+4. Click "Load unpacked", pick the "src" folder (the one that contains
+   manifest.json), and click Select Folder.
+
+5. "GitHub bot slash-command autocomplete" now appears in the list, already
+   switched on. To keep its icon in the toolbar, click the puzzle-piece
+   button in Chrome's toolbar and then the pin next to the extension.
+
+Notes:
+
+  - To update, unzip the newer release over the same folder, go to
+    chrome://extensions and click the reload icon on the extension's card.
+  - To remove it, click Remove on the extension's card.
+  - Don't use this together with the installer. Chrome would show the
+    extension twice. If you installed it with the installer, run the
+    uninstaller first.
+  - Chrome may show a "Disable developer mode extensions" prompt when it
+    starts. Dismiss it (or choose Keep) to leave the extension on.
+
+
 UNINSTALL
 ---------
 
@@ -101,3 +149,60 @@ Windows blocks the script (execution policy)
   - Open PowerShell in this folder and run:
 
       powershell -ExecutionPolicy Bypass -File .\scripts\install-gh-slash-extension.ps1
+
+
+MACOS AND LINUX
+---------------
+
+These steps work for Google Chrome on macOS and Linux, and for Chromium on
+Linux. The installer sets up every one of those browsers it finds. Chromium
+installed as a snap or Flatpak is not supported, and neither are other
+Chrome-based browsers.
+
+Unzip the release into a PERMANENT folder, for example ~/gh-slash-autocomplete.
+Chrome loads the .crx straight from that folder, so do not move or delete it
+after installing.
+
+Install or update:
+
+1. Open a terminal in the folder and run:
+
+     ./install-gh-slash-extension.sh
+
+   If your system says "permission denied", run it as:
+   bash install-gh-slash-extension.sh
+
+   Run it as yourself. Do not use sudo; the script asks for sudo itself only
+   when it needs it.
+
+2. If the browser is open, the installer asks "Close it now? (y/n)". Press y or n
+   (no Enter needed). y closes Chrome the normal way and reopens it with your
+   tabs when it finishes. n stops without changing anything.
+
+3. Turn the extension on (one time only): go to chrome://extensions and switch
+   "GitHub bot slash-command autocomplete" ON.
+
+4. Pin the icon.
+
+   - Linux: the installer pins it for you. It asks for your sudo password to
+     write a browser policy file: /etc/opt/chrome/policies/managed/
+     gh-slash-autocomplete.json for Chrome, and /etc/chromium/policies/managed/
+     gh-slash-autocomplete.json for Chromium. If you decline, the extension
+     still installs; pin the icon yourself with the puzzle-piece button in the
+     browser's toolbar.
+   - macOS: pin the icon yourself with the puzzle-piece button.
+
+To update, unzip the newer release over the same folder and run the installer
+again. It uses the newest .crx it finds.
+
+Uninstall:
+
+     ./uninstall-gh-slash-extension.sh
+
+If the browser is open, it offers to restart it, as on Windows. On Linux it
+also removes the policy files (asking for your sudo password). Then go to
+chrome://extensions and click Remove if the extension is still listed.
+
+The installer needs perl (already on macOS and almost every Linux). Add
+--no-pause to either script to run it without any prompts; Chrome is then left
+open and you restart it yourself.
