@@ -92,6 +92,29 @@ variant_installed() {  # a profile folder or a launch command exists for this br
 }
 all_variants() { if [ "$OS" = mac ]; then echo chrome; else echo "chrome chromium"; fi; }
 
+# Check, before anything is changed or closed, that we can change the External Extensions folder of each browser
+# among "$@". macOS blocks a terminal from changing another app's files ("Operation not permitted") unless the
+# terminal has been given Full Disk Access, so say how to do that.
+check_can_write() {
+    local V Dir Probe
+    for V in "$@"; do
+        Dir="$(dirname "$(ext_json "$V")")"
+        Probe="$Dir/.gh-slash-write-test.$$"
+        if mkdir -p "$Dir" 2>/dev/null && : > "$Probe" 2>/dev/null; then rm -f "$Probe"; continue; fi
+        say "Can't change files in $Dir" "$C_RED"
+        if [ "$OS" = mac ]; then
+            say "macOS is blocking this terminal from changing Chrome's files (\"Operation not permitted\"). To allow it:" "$C_YELLOW"
+            say "  1. Open System Settings -> Privacy & Security -> Full Disk Access." "$C_YELLOW"
+            say "  2. Switch on the terminal app you are running this in (Terminal, iTerm, ...). If it isn't listed, click + and add it." "$C_YELLOW"
+            say "  3. Quit that terminal app completely (Cmd+Q), open it again, and re-run this script." "$C_YELLOW"
+            say "If it still fails, this Mac may be managed by your organization; ask your IT team." "$C_YELLOW"
+        else
+            say "Check that your user owns that folder and that it isn't read-only." "$C_YELLOW"
+        fi
+        fail "Nothing was changed."
+    done
+}
+
 # --- Browser process helpers ---
 browser_pids() {  # the browser's own process(es) for variant $1, not its helpers
     local Name Pid Args

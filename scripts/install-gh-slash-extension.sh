@@ -16,11 +16,12 @@ for Arg in "$@"; do
     esac
 done
 
-# The .crx and lib-gh-slash-extension.sh sit next to this script (release zip), or the .crx sits in its parent (repo,
-# where the scripts are in scripts/).
+# The .crx sits next to this script (release zip), or in its parent (repo, where the scripts are in scripts/).
+# The shared lib-gh-slash-extension.sh is in scripts/ in the release zip, and next to this script in the repo.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIB_DIR="$SCRIPT_DIR"; [ -f "$LIB_DIR/lib-gh-slash-extension.sh" ] || LIB_DIR="$SCRIPT_DIR/scripts"  # in the repo it is next to this script, in the release zip in scripts/
 # shellcheck source=lib-gh-slash-extension.sh
-source "$SCRIPT_DIR/lib-gh-slash-extension.sh" || { echo "ERROR: lib-gh-slash-extension.sh must be in the same folder as this script." >&2; exit 1; }
+source "$LIB_DIR/lib-gh-slash-extension.sh" || { echo "ERROR: lib-gh-slash-extension.sh not found. Keep the scripts folder next to this script." >&2; exit 1; }
 
 check_platform install-gh-slash-extension.bat
 show_banner
@@ -63,6 +64,8 @@ if [ "$OS" = linux ] && { [ -d "$HOME/snap/chromium" ] || [ -d "$HOME/.var/app/o
     say "Note: Chromium installed as a snap or Flatpak keeps its files elsewhere and is not supported by this script." "$C_YELLOW"
 fi
 
+check_can_write "${TARGETS[@]}"  # before closing anything
+
 # 3. The browsers must be closed: they rewrite their Preferences files when they exit, which would undo the cleanup
 #    in step 4. Offer to close them, or stop.
 close_running_browsers     "is running and must be closed to finish the install."     "Close it now? It will be reopened with your tabs when the install finishes (y/n)"     "Try again (y/n)? Choose n to close it yourself"     "${TARGETS[@]}" || fail "Close the browser completely (all windows), then run this installer again. Nothing was changed."
@@ -102,7 +105,10 @@ for Variant in "${TARGETS[@]}"; do
             [ -d "$ProfileDir" ] || continue
             for File in "$ProfileDir/Preferences" "$ProfileDir/Secure Preferences"; do
                 [ -f "$File" ] || continue
-                cp -f "$File" "$File.bak"
+                if ! cp -f "$File" "$File.bak"; then  # never edit a file we couldn't back up
+                    say "Couldn't back up $File, so it was left as it is." "$C_YELLOW"
+                    continue
+                fi
                 Result="$(perl -MJSON::PP -e "$CLEAN_PREFS" "$File" "$EXTENSION_ID" 2>/dev/null)"
                 if [ "$Result" = modified ]; then
                     say "Cleared blacklist entry in $(variant_label "$Variant") [$(basename "$ProfileDir")] -> $(basename "$File")" "$C_YELLOW"

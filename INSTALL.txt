@@ -8,12 +8,10 @@ On Windows they also work on managed Chrome browsers.
   gh-slash-autocomplete-<version>.crx    The extension.
   install-gh-slash-extension.bat         Installs or updates the extension (Windows).
   uninstall-gh-slash-extension.bat       Removes the extension (Windows).
-  scripts\                               The PowerShell scripts the .bat files run, and
-                                         the helpers they share.
+  scripts\                               The PowerShell scripts the .bat files run, and the
+                                         helpers all the scripts share.
   install-gh-slash-extension.sh          Installs or updates the extension (macOS and Linux).
   uninstall-gh-slash-extension.sh        Removes the extension (macOS and Linux).
-  lib-gh-slash-extension.sh              Helpers the two .sh scripts share. Keep it in the
-                                         same folder as them.
   src\                                   The extension's source files, for the manual install
                                          (see "MANUAL INSTALL").
 
@@ -202,6 +200,20 @@ Uninstall:
 If the browser is open, it offers to restart it, as on Windows. On Linux it
 also removes the policy files (asking for your sudo password). Then go to
 chrome://extensions and click Remove if the extension is still listed.
+
+If macOS says "Operation not permitted":
+macOS stops terminal apps from changing Chrome's files unless you allow it. The
+scripts check this first and stop without changing anything or closing Chrome.
+To allow it:
+
+  1. Open System Settings -> Privacy & Security -> Full Disk Access.
+  2. Switch on the terminal app you run the script in (Terminal, iTerm, ...).
+     If it isn't listed, click + and add it.
+  3. Quit that terminal app completely (Cmd+Q), open it again, and run the
+     script again.
+
+If it still fails, your Mac may be managed by your organization; ask your IT
+team. The manual install (above) doesn't need this permission.
 
 The installer needs perl (already on macOS and almost every Linux). Add
 --no-pause to either script to run it without any prompts; Chrome is then left
