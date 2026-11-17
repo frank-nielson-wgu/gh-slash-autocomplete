@@ -58,7 +58,8 @@ Because this extension is installed locally rather than through the public Chrom
 
 1. Double-click **`scripts\uninstall-gh-slash-extension.bat`**.
 2. Click **Yes** when prompted for Administrator permission.
-3. Open Chrome, go to **`chrome://extensions`**, and click **Remove** on the extension card if it is still listed.
+3. Restart Chrome (close all of its windows, then reopen it). The script does not close Chrome for you.
+4. Go to **`chrome://extensions`** and click **Remove** on the extension card if it is still listed.
 
 ---
 

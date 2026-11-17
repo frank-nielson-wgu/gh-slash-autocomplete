@@ -21,9 +21,7 @@ $DeleteCrx   = $false  # Set to $true if you also want the script to delete loca
 # Resolve the repo root (the parent of the scripts folder, where the .crx lives)
 $ScriptDir = Split-Path -Parent $(if ([string]::IsNullOrWhiteSpace($PSScriptRoot)) { (Get-Location).Path } else { $PSScriptRoot })
 
-# 1. Force-close Chrome completely
-cmd /c "taskkill /F /IM chrome.exe /T >nul 2>&1"; $global:LASTEXITCODE = 0  # run via cmd so a missing chrome.exe is neither an error nor the exit code
-Start-Sleep -Seconds 2
+# 1. Chrome is left running; it picks up the removed registry entries and policy when it restarts.
 
 # 2. Remove External Extension Registry entries (64-bit & 32-bit)
 $RegPaths = @(
@@ -58,5 +56,5 @@ if ($DeleteCrx) {
 }
 
 Write-Host "`nRollback complete!" -ForegroundColor Green
-Write-Host "Next steps: Open Chrome -> go to chrome://extensions -> click 'Remove' on the extension card if it still appears." -ForegroundColor Cyan
+Write-Host "Next steps: Restart Chrome (close all of its windows, then reopen it) -> go to chrome://extensions -> click 'Remove' on the extension card if it still appears." -ForegroundColor Cyan
 Wait-ForEnter "`nPress Enter to close this window"
