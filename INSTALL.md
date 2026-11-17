@@ -1,5 +1,19 @@
 # GitHub Bot Slash-Command Autocomplete — Local Installation Guide
 
+> ## Installing from the release zip?
+>
+> If you downloaded `gh-slash-autocomplete-install-<version>.zip` from the GitHub releases page, this is all you need:
+>
+> 1. **Unzip it to a permanent folder** (such as `C:\code\gh-slash-autocomplete`). Chrome loads the `.crx` straight from this folder, so don't move or delete it afterwards.
+> 2. Double-click **`scripts\install-gh-slash-extension.bat`** and click **Yes** at the Administrator prompt.
+> 3. Open Chrome, go to `chrome://extensions`, and turn the extension **ON** (one time only).
+>
+> To update, unzip the newer release over the same folder and run the installer again. To remove it, run `scripts\uninstall-gh-slash-extension.bat`.
+>
+> The rest of this guide covers the same steps in more detail. Where it says "repo root", read "the folder you unzipped into". The `pack-extension` script is only in the repository, not the zip.
+
+---
+
 This repo contains the packaged Chrome extension (`.crx`) along with PowerShell scripts to install, update, and uninstall it on Windows, including support for managed Chrome browsers.
 
 ## Folder Contents

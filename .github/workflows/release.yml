@@ -1,7 +1,8 @@
 name: Release
 
 # Whenever src/manifest.json changes on main (that is, when the version is bumped), build the Web Store
-# zip and publish it as a GitHub release tagged v<version>. Can also be run by hand.
+# zip and the installer zip (.crx + install scripts) and publish both as a GitHub release tagged
+# v<version>. Needs the EXTENSION_PEM secret (the private key). Can also be run by hand.
 on:
   push:
     branches: [main]
@@ -13,7 +14,7 @@ permissions:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest  # packing the .crx needs Chrome, which this runner has
     steps:
       - uses: actions/checkout@v4
 
@@ -26,6 +27,7 @@ jobs:
 
       - name: Check the release does not exist yet
         id: check
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -36,18 +38,39 @@ jobs:
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Pack
+      - name: Build the Web Store zip
         if: steps.check.outputs.exists == 'false'
         shell: pwsh
         run: ./scripts/zip-extension.ps1
 
+      - name: Pack the .crx
+        if: steps.check.outputs.exists == 'false'
+        shell: bash
+        env:
+          EXTENSION_PEM: ${{ secrets.EXTENSION_PEM }}
+        run: |
+          if [ -z "$EXTENSION_PEM" ]; then
+            echo "The EXTENSION_PEM secret is not set; it must hold the extension's private key (.pem)." >&2
+            exit 1
+          fi
+          printf '%s\n' "$EXTENSION_PEM" > "$RUNNER_TEMP/extension.pem"
+          powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pack-extension.ps1 -NoPause -PemKey "$(cygpath -w "$RUNNER_TEMP/extension.pem")"
+          rm -f "$RUNNER_TEMP/extension.pem"
+
+      - name: Build the installer zip
+        if: steps.check.outputs.exists == 'false'
+        shell: pwsh
+        run: ./scripts/zip-installer.ps1
+
       - name: Create the release
         if: steps.check.outputs.exists == 'false'
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "v${{ steps.version.outputs.version }}" \
             "dist/gh-slash-autocomplete-${{ steps.version.outputs.version }}.zip" \
+            "dist/gh-slash-autocomplete-install-${{ steps.version.outputs.version }}.zip" \
             --target "${{ github.sha }}" \
             --title "v${{ steps.version.outputs.version }}" \
             --generate-notes
