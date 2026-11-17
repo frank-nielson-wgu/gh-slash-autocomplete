@@ -11,18 +11,16 @@ permissions:
 
 jobs:
   install-uninstall:
-    name: Pack, install and uninstall
+    name: Install and uninstall
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Pack a .crx with a throwaway key
+      - name: Use the packed .crx fixture
         shell: bash
         run: |
-          # The real signing key is private; a throwaway one is enough to test the install scripts.
-          openssl genrsa 2048 | openssl pkcs8 -topk8 -nocrypt -out "$RUNNER_TEMP/test.pem"
-          powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pack-extension.ps1 -NoPause -PemKey "$(cygpath -w "$RUNNER_TEMP/test.pem")"
-          ls gh-slash-autocomplete-*.crx
+          # A .crx packed with the real key, kept in tests/fixtures. The scripts look for it in the repo root.
+          cp tests/fixtures/gh-slash-autocomplete-*.crx .
 
       - name: Install
         shell: powershell
@@ -33,8 +31,8 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $id = [regex]::Match((Get-Content scripts/install-gh-slash-extension.ps1 -Raw), '\$ExtensionID = "(\w+)"').Groups[1].Value
-          $version = (Get-Content src/manifest.json -Raw | ConvertFrom-Json).version
           $crx = (Get-ChildItem gh-slash-autocomplete-*.crx | Select-Object -First 1).FullName
+          $version = [regex]::Match($crx, 'gh-slash-autocomplete-(.+).crx').Groups[1].Value
           foreach ($key in "HKLM:\SOFTWARE\Google\Chrome\Extensions\$id", "HKLM:\SOFTWARE\WOW6432Node\Google\Chrome\Extensions\$id") {
             $item = Get-ItemProperty -Path $key
             if ($item.path -ne $crx) { throw "$key path is '$($item.path)', expected '$crx'" }
@@ -61,6 +59,20 @@ jobs:
           }
           "Registry entries removed."
 
+
+  pack:
+    name: Pack
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pack a .crx with a throwaway key
+        shell: bash
+        run: |
+          # The real signing key is private; a throwaway one is enough to check that packing works.
+          openssl genrsa 2048 | openssl pkcs8 -topk8 -nocrypt -out "$RUNNER_TEMP/test.pem"
+          powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pack-extension.ps1 -NoPause -PemKey "$(cygpath -w "$RUNNER_TEMP/test.pem")"
+          ls gh-slash-autocomplete-*.crx
   zip:
     name: Web Store zip
     runs-on: windows-latest
