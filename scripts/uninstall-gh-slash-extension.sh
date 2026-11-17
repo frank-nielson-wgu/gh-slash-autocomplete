@@ -14,11 +14,10 @@ for Arg in "$@"; do
     esac
 done
 
-# The shared lib-gh-slash-extension.sh is in scripts/ in the release zip, and next to this script in the repo.
+# lib-gh-slash-extension.sh sits next to this script, in the scripts/ folder.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LIB_DIR="$SCRIPT_DIR"; [ -f "$LIB_DIR/lib-gh-slash-extension.sh" ] || LIB_DIR="$SCRIPT_DIR/scripts"  # in the repo it is next to this script, in the release zip in scripts/
 # shellcheck source=lib-gh-slash-extension.sh
-source "$LIB_DIR/lib-gh-slash-extension.sh" || { echo "ERROR: lib-gh-slash-extension.sh not found. Keep the scripts folder next to this script." >&2; exit 1; }
+source "$SCRIPT_DIR/lib-gh-slash-extension.sh" || { echo "ERROR: lib-gh-slash-extension.sh must be in the same folder as this script." >&2; exit 1; }
 
 check_platform uninstall-gh-slash-extension.bat
 show_banner
@@ -28,11 +27,13 @@ DELETE_CRX=false  # Set to true if you also want the script to delete local .crx
 # The browsers with something to remove are the targets.
 TARGETS=()
 for Variant in $(all_variants); do
-    if [ -f "$(ext_json "$Variant")" ] || { [ "$OS" = linux ] && [ -f "$(policy_file "$Variant")" ]; }; then TARGETS+=("$Variant"); fi
+    if [ -f "$(ext_json "$Variant")" ] || { [ "$OS" = linux ] && [ -f "$(policy_file "$Variant")" ]; } || { [ "$OS" = mac ] && [ -f "$SYSTEM_EXT_JSON" ]; }; then TARGETS+=("$Variant"); fi
 done
 if [ "${#TARGETS[@]}" -eq 0 ]; then say "No installed copy of the extension was found." "$C_YELLOW"; fi
 
-check_can_write "${TARGETS[@]}"  # before closing anything
+for Variant in "${TARGETS[@]}"; do  # before closing anything: can we remove the per-user entries?
+    [ -f "$(ext_json "$Variant")" ] && check_can_write "$Variant"
+done
 
 # 1. The browser only notices the removal when it restarts. Offer to restart it. Unlike the installer, the removal
 #    doesn't need it closed, so declining just means the user restarts it themselves.
@@ -45,13 +46,28 @@ for Variant in "${TARGETS[@]}"; do
     fi
 done
 
+# 2b. Remove the system-wide registration made when macOS blocked the per-user folder (macOS only, needs admin rights)
+if [ "$OS" = mac ] && [ -f "$SYSTEM_EXT_JSON" ]; then
+    init_sudo
+    if ! $NO_PAUSE; then say "Removing the system-wide registration needs administrator rights (sudo)." "$C_YELLOW"; fi
+    if "${SUDO[@]}" rm -f "$SYSTEM_EXT_JSON"; then
+        say "Removed $SYSTEM_EXT_JSON" "$C_YELLOW"
+        for File in "$SYSTEM_CRX_DIR/$CRX_PREFIX"*.crx; do
+            [ -f "$File" ] && "${SUDO[@]}" rm -f "$File" && say "Removed $File" "$C_YELLOW"
+        done
+        "${SUDO[@]}" rmdir "$SYSTEM_CRX_DIR" 2>/dev/null
+    else
+        say "WARNING: Couldn't remove $SYSTEM_EXT_JSON. Delete it yourself with: sudo rm '$SYSTEM_EXT_JSON'" "$C_YELLOW"
+    fi
+fi
+
 # 3. Remove the toolbar-pin policies added during setup (Linux only, needs root)
 if [ "$OS" = linux ]; then
     SUDO=()
     for Variant in "${TARGETS[@]}"; do
         [ -f "$(policy_file "$Variant")" ] || continue
         if [ "${#SUDO[@]}" -eq 0 ]; then
-            if $NO_PAUSE; then SUDO=(sudo -n); else SUDO=(sudo); say "Removing the toolbar-pin policy needs administrator rights (sudo)." "$C_YELLOW"; fi
+            init_sudo; if ! $NO_PAUSE; then say "Removing the toolbar-pin policy needs administrator rights (sudo)." "$C_YELLOW"; fi
         fi
         if "${SUDO[@]}" rm -f "$(policy_file "$Variant")"; then
             say "Removed $(policy_file "$Variant")" "$C_YELLOW"

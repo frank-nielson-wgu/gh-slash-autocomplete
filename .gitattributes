@@ -4,3 +4,4 @@
 
 # Shell scripts must keep LF line endings, or bash fails on the carriage returns.
 *.sh text eol=lf
+*.command text eol=lf

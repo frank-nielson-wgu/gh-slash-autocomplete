@@ -92,26 +92,60 @@ variant_installed() {  # a profile folder or a launch command exists for this br
 }
 all_variants() { if [ "$OS" = mac ]; then echo chrome; else echo "chrome chromium"; fi; }
 
-# Check, before anything is changed or closed, that we can change the External Extensions folder of each browser
-# among "$@". macOS blocks a terminal from changing another app's files ("Operation not permitted") unless the
-# terminal has been given Full Disk Access, so say how to do that.
+# macOS only: the system-wide folder Chrome also reads. If the per-user folder is blocked we register here instead,
+# keeping our own copy of the .crx in SYSTEM_CRX_DIR. Writing either needs administrator rights.
+SYSTEM_EXT_JSON="/Library/Application Support/Google/Chrome/External Extensions/$EXTENSION_ID.json"
+SYSTEM_CRX_DIR="/Library/Application Support/gh-slash-autocomplete"
+
+init_sudo() { if $NO_PAUSE; then SUDO=(sudo -n); else SUDO=(sudo); fi; }  # sudo asks for the password only when interactive
+
+can_write_user_folder() {  # can we change the External Extensions folder of browser $1? (creates it if needed)
+    local Dir Probe
+    Dir="$(dirname "$(ext_json "$1")")"
+    Probe="$Dir/.gh-slash-write-test.$$"
+    if mkdir -p "$Dir" 2>/dev/null && : > "$Probe" 2>/dev/null; then rm -f "$Probe"; return 0; fi
+    return 1
+}
+explain_blocked() {  # how to fix a blocked per-user folder
+    if [ "$OS" = mac ]; then
+        say "macOS is blocking this terminal from changing Chrome's files ('Operation not permitted'). To allow it:" "$C_YELLOW"
+        say "  1. Open System Settings -> Privacy & Security -> Full Disk Access." "$C_YELLOW"
+        say "  2. Switch on the terminal app you are running this in (Terminal, iTerm, ...). If it isn't listed, click + and add it." "$C_YELLOW"
+        say "  3. Quit that terminal app completely (Cmd+Q), open it again, and re-run this script." "$C_YELLOW"
+        say "If it still fails, this Mac may be managed by your organization; ask your IT team." "$C_YELLOW"
+    else
+        say "Check that your user owns that folder and that it isn't read-only." "$C_YELLOW"
+    fi
+}
+
+# Uninstall: check, before anything is closed or removed, that we can change the folder of each browser among "$@".
 check_can_write() {
-    local V Dir Probe
+    local V
     for V in "$@"; do
-        Dir="$(dirname "$(ext_json "$V")")"
-        Probe="$Dir/.gh-slash-write-test.$$"
-        if mkdir -p "$Dir" 2>/dev/null && : > "$Probe" 2>/dev/null; then rm -f "$Probe"; continue; fi
-        say "Can't change files in $Dir" "$C_RED"
-        if [ "$OS" = mac ]; then
-            say "macOS is blocking this terminal from changing Chrome's files (\"Operation not permitted\"). To allow it:" "$C_YELLOW"
-            say "  1. Open System Settings -> Privacy & Security -> Full Disk Access." "$C_YELLOW"
-            say "  2. Switch on the terminal app you are running this in (Terminal, iTerm, ...). If it isn't listed, click + and add it." "$C_YELLOW"
-            say "  3. Quit that terminal app completely (Cmd+Q), open it again, and re-run this script." "$C_YELLOW"
-            say "If it still fails, this Mac may be managed by your organization; ask your IT team." "$C_YELLOW"
-        else
-            say "Check that your user owns that folder and that it isn't read-only." "$C_YELLOW"
-        fi
+        can_write_user_folder "$V" && continue
+        say "Can't change files in $(dirname "$(ext_json "$V")")" "$C_RED"
+        explain_blocked
         fail "Nothing was changed."
+    done
+}
+
+# Install: decide where to register, before anything is closed or changed. Sets SYSTEM_MODE=true when macOS blocks
+# the per-user folder, so we use the system-wide one instead. Elsewhere a blocked folder stops the install.
+choose_install_mode() {
+    local V
+    SYSTEM_MODE=false
+    for V in "$@"; do
+        can_write_user_folder "$V" && continue
+        if [ "$OS" = mac ]; then
+            say "macOS is blocking this terminal from changing Chrome's files ('Operation not permitted')." "$C_YELLOW"
+            say "Installing for every user of this Mac instead; that asks for your administrator password." "$C_YELLOW"
+            say "(To install just for you, give this terminal Full Disk Access and run this again.)" "$C_YELLOW"
+            SYSTEM_MODE=true
+        else
+            say "Can't change files in $(dirname "$(ext_json "$V")")" "$C_RED"
+            explain_blocked
+            fail "Nothing was changed."
+        fi
     done
 }
 
