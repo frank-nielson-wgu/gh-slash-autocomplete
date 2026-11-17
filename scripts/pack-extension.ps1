@@ -1,6 +1,6 @@
 param(
     [switch]$NoPause,                                # skip the "Press Enter" prompt (for CI and automation)
-    [string]$PemKey = "C:\code\gh-slash-autocomplete.pem"  # Path to your permanent .pem private key
+    [string]$PemKey = (Join-Path (Split-Path -Parent $PSScriptRoot) "gh-slash-autocomplete.pem")  # Your permanent .pem private key (git-ignored, kept in the repo root)
 )
 
 # --- CONFIGURATION ---

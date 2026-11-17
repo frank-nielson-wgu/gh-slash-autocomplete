@@ -93,3 +93,18 @@ jobs:
           $names = [IO.Compression.ZipFile]::OpenRead((Resolve-Path $zip)).Entries.FullName
           if ($names -notcontains 'manifest.json') { throw "manifest.json is not at the root of $zip" }
           "$zip contains $($names.Count) files."
+
+      - name: Build the installer zip
+        shell: pwsh
+        run: |
+          # The fixture is packed from an older version; copy it under the current version's name.
+          $version = (Get-Content src/manifest.json -Raw | ConvertFrom-Json).version
+          Copy-Item (Get-ChildItem tests/fixtures/gh-slash-autocomplete-*.crx | Select-Object -First 1) "gh-slash-autocomplete-$version.crx"
+          ./scripts/zip-installer.ps1
+          $zip = "dist/gh-slash-autocomplete-install-$version.zip"
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $names = [IO.Compression.ZipFile]::OpenRead((Resolve-Path $zip)).Entries.FullName
+          foreach ($expected in "gh-slash-autocomplete-$version.crx", 'scripts/install-gh-slash-extension.bat', 'scripts/install-gh-slash-extension.ps1', 'scripts/uninstall-gh-slash-extension.bat', 'scripts/uninstall-gh-slash-extension.ps1') {
+            if ($names -notcontains $expected) { throw "$expected is missing from $zip" }
+          }
+          "$zip contains $($names.Count) files."
