@@ -204,10 +204,14 @@ if ($ClosedChrome -and $ChromeExe -and (Test-Path $ChromeExe)) {
         $Link.TargetPath = $ChromeExe
         $Link.Arguments = "--restore-last-session"
         $Link.Save()
-        Start-Process -FilePath explorer.exe -ArgumentList "`"$Shortcut`""
 
-        $Deadline = (Get-Date).AddSeconds(10)
-        while (-not (Get-Process -Name chrome -ErrorAction SilentlyContinue) -and (Get-Date) -lt $Deadline) { Start-Sleep -Milliseconds 250 }
+        # Launch, give Chrome 3 seconds to show up, and if it doesn't, retry (4 attempts in all).
+        for ($Attempt = 1; $Attempt -le 4; $Attempt++) {
+            Start-Process -FilePath explorer.exe -ArgumentList "`"$Shortcut`""
+            $Deadline = (Get-Date).AddSeconds(3)
+            while (-not (Get-Process -Name chrome -ErrorAction SilentlyContinue) -and (Get-Date) -lt $Deadline) { Start-Sleep -Milliseconds 250 }
+            if (Get-Process -Name chrome -ErrorAction SilentlyContinue) { break }
+        }
     } finally {
         Remove-Item $Shortcut -Force -ErrorAction SilentlyContinue
     }
@@ -216,7 +220,7 @@ if ($ClosedChrome -and $ChromeExe -and (Test-Path $ChromeExe)) {
         Write-Host "Reopened Chrome." -ForegroundColor Cyan
         Write-Host "Next steps: In Chrome, go to chrome://extensions -> toggle the extension ON once." -ForegroundColor Cyan
     } else {
-        Write-Warning "Couldn't reopen Chrome automatically."
+        Write-Warning "Couldn't reopen Chrome automatically after 4 tries. Please start Chrome yourself."
         Write-Host "Next steps: Open Chrome -> go to chrome://extensions -> toggle the extension ON once." -ForegroundColor Cyan
     }
 } else {
