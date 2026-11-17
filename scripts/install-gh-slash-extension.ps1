@@ -85,7 +85,9 @@ Write-Host "Detected $($LatestCrx.Name) -> Version $Version" -ForegroundColor Cy
 #    Offer to close it the way the user would (asking each window to close, not killing the process), or stop.
 if (Get-Process -Name chrome -ErrorAction SilentlyContinue) {
     Write-Host "Google Chrome is running and must be closed to finish the install." -ForegroundColor Yellow
-    $Answer = if ($NoPause) { 'n' } else { Read-Host "Close Chrome now? Your tabs will be restored when you reopen it (y/n)" }
+    $Answer = if ($NoPause) { 'n' } else { Read-Host "Close Chrome now? It will be reopened with your tabs when the install finishes (y/n)" }
+
+    $ChromeExe = (Get-Process -Name chrome -ErrorAction SilentlyContinue | Where-Object { $_.Path } | Select-Object -First 1).Path
 
     while ($Answer -match '^\s*y') {
         # Same as clicking the X on each window; Chrome shuts down normally and saves its state.
@@ -105,6 +107,7 @@ if (Get-Process -Name chrome -ErrorAction SilentlyContinue) {
         exit 1
     }
     Start-Sleep -Seconds 1  # let Chrome finish writing its files
+    $ClosedChrome = $true   # we closed it, so we reopen it at the end
     Write-Host "Chrome closed." -ForegroundColor Cyan
 }
 
@@ -178,5 +181,13 @@ New-Item -Path $PolicyPath -Force | Out-Null
 New-ItemProperty -Path $PolicyPath -Name "ExtensionSettings" -Value $CompactJson -PropertyType String -Force | Out-Null
 
 Write-Host "`nSuccessfully registered $ExtensionID v$Version!" -ForegroundColor Green
-Write-Host "Next steps: Open Chrome -> go to chrome://extensions -> toggle the extension ON once." -ForegroundColor Cyan
+if ($ClosedChrome -and $ChromeExe -and (Test-Path $ChromeExe)) {
+    # This script runs as Administrator; start Chrome with a normal user token so it doesn't run elevated.
+    # --restore-last-session brings back the tabs from before we closed it.
+    runas.exe /trustlevel:0x20000 "`"$ChromeExe`" --restore-last-session" | Out-Null
+    Write-Host "Reopened Chrome." -ForegroundColor Cyan
+    Write-Host "Next steps: In Chrome, go to chrome://extensions -> toggle the extension ON once." -ForegroundColor Cyan
+} else {
+    Write-Host "Next steps: Open Chrome -> go to chrome://extensions -> toggle the extension ON once." -ForegroundColor Cyan
+}
 Wait-ForEnter "`nPress Enter to close this window"

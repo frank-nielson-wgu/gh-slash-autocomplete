@@ -35,14 +35,14 @@ The `.bat` files are thin wrappers around the `.ps1` scripts of the same name in
 
 1. Double-click **`scripts\install-gh-slash-extension.bat`**.
 2. Click **Yes** when prompted for Administrator (UAC) permission.
-   * *Note: The script detects the newest `.crx` version in the repo root and configures the Windows Registry. If Chrome is open, it asks whether to close it (a normal close, like clicking the X on each window; tabs are restored when you reopen Chrome). Chrome must be closed for the install to continue.*
+   * *Note: The script detects the newest `.crx` version in the repo root and configures the Windows Registry. If Chrome is open, it asks whether to close it (a normal close, like clicking the X on each window; and reopens it with your tabs when the install finishes). Chrome must be closed for the install to continue.*
 3. Press **Enter** to close the PowerShell window once it finishes.
 
 ### 2. Enable the Extension (One-Time Step)
 
 Because this extension is installed locally rather than through the public Chrome Web Store, Chrome keeps it toggled off by default on first install:
 
-1. **Open Google Chrome.** Chrome only picks up the new registry entry at startup, which is why the installer needs it closed.
+1. **Open Google Chrome** (the installer already reopened it if it closed it for you). Chrome only picks up the new registry entry at startup, which is why the installer needs it closed.
 2. Navigate to **`chrome://extensions`**.
 3. Find **GitHub bot slash-command autocomplete** and flip its **enable toggle switch ON**.
 4. The extension icon will automatically pin to your Chrome toolbar and stay enabled across future restarts.
