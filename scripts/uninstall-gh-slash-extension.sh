@@ -14,10 +14,11 @@ for Arg in "$@"; do
     esac
 done
 
-# lib-gh-slash-extension.sh sits next to this script (release zip and repo alike).
+# The shared lib-gh-slash-extension.sh is in scripts/ in the release zip, and next to this script in the repo.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIB_DIR="$SCRIPT_DIR"; [ -f "$LIB_DIR/lib-gh-slash-extension.sh" ] || LIB_DIR="$SCRIPT_DIR/scripts"  # in the repo it is next to this script, in the release zip in scripts/
 # shellcheck source=lib-gh-slash-extension.sh
-source "$SCRIPT_DIR/lib-gh-slash-extension.sh" || { echo "ERROR: lib-gh-slash-extension.sh must be in the same folder as this script." >&2; exit 1; }
+source "$LIB_DIR/lib-gh-slash-extension.sh" || { echo "ERROR: lib-gh-slash-extension.sh not found. Keep the scripts folder next to this script." >&2; exit 1; }
 
 check_platform uninstall-gh-slash-extension.bat
 show_banner
@@ -30,6 +31,8 @@ for Variant in $(all_variants); do
     if [ -f "$(ext_json "$Variant")" ] || { [ "$OS" = linux ] && [ -f "$(policy_file "$Variant")" ]; }; then TARGETS+=("$Variant"); fi
 done
 if [ "${#TARGETS[@]}" -eq 0 ]; then say "No installed copy of the extension was found." "$C_YELLOW"; fi
+
+check_can_write "${TARGETS[@]}"  # before closing anything
 
 # 1. The browser only notices the removal when it restarts. Offer to restart it. Unlike the installer, the removal
 #    doesn't need it closed, so declining just means the user restarts it themselves.
