@@ -16,7 +16,7 @@ jobs:
   release:
     runs-on: windows-latest  # packing the .crx needs Chrome, which this runner has
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Read the version
         id: version
