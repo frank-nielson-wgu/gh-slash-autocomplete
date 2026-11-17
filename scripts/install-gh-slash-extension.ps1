@@ -81,10 +81,32 @@ if ([string]::IsNullOrWhiteSpace($Version)) {
 
 Write-Host "Detected $($LatestCrx.Name) -> Version $Version" -ForegroundColor Cyan
 
-# 3. Chrome is left running. It rewrites its Preferences files when it exits, so a running Chrome would undo the
-#    blacklist cleanup below. If Chrome is running and remembers an earlier uninstall of this extension, the
-#    install stops here and asks the user to close Chrome and run it again.
-$ChromeRunning = [bool](Get-Process -Name chrome -ErrorAction SilentlyContinue)
+# 3. Chrome must be closed: it rewrites its Preferences files when it exits, which would undo the cleanup in step 4.
+#    Offer to close it the way the user would (asking each window to close, not killing the process), or stop.
+if (Get-Process -Name chrome -ErrorAction SilentlyContinue) {
+    Write-Host "Google Chrome is running and must be closed to finish the install." -ForegroundColor Yellow
+    $Answer = if ($NoPause) { 'n' } else { Read-Host "Close Chrome now? Your tabs will be restored when you reopen it (y/n)" }
+
+    if ($Answer -match '^\s*y') {
+        # Same as clicking the X on each window; Chrome shuts down normally and saves its state.
+        Get-Process -Name chrome -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 } | ForEach-Object { [void]$_.CloseMainWindow() }
+
+        $Deadline = (Get-Date).AddSeconds(30)
+        while ((Get-Process -Name chrome -ErrorAction SilentlyContinue) -and (Get-Date) -lt $Deadline) { Start-Sleep -Milliseconds 500 }
+
+        if (Get-Process -Name chrome -ErrorAction SilentlyContinue) {
+            Write-Error "Chrome did not close. It may be waiting on a dialog or running in the background (check the system tray). Close it completely, then run this installer again. Nothing was changed."
+            Wait-ForEnter "Press Enter to exit"
+            exit 1
+        }
+        Start-Sleep -Seconds 1  # let Chrome finish writing its files
+        Write-Host "Chrome closed." -ForegroundColor Cyan
+    } else {
+        Write-Error "Close Chrome completely (all windows, and any icon in the system tray), then run this installer again. Nothing was changed."
+        Wait-ForEnter "Press Enter to exit"
+        exit 1
+    }
+}
 
 # 4. Dynamically scan ALL Chrome profiles for the current user ($env:LOCALAPPDATA)
 $UserDataDir = Join-Path $env:LOCALAPPDATA "Google\Chrome\User Data"
@@ -93,26 +115,7 @@ if (Test-Path $UserDataDir) {
     $ProfileDirs = @(Get-ChildItem -Path $UserDataDir -Directory | Where-Object { $_.Name -eq "Default" -or $_.Name -like "Profile *" })
 }
 
-if ($ChromeRunning) {
-    # Reading the Preferences files is safe while Chrome runs; Chrome lists an extension in
-    # extensions.external_uninstalls when the user removed it, and won't reinstall it until that entry is cleared.
-    $PreviouslyUninstalled = @()
-    foreach ($Profile in $ProfileDirs) {
-        try {
-            $Json = [System.IO.File]::ReadAllText((Join-Path $Profile.FullName "Preferences")) | ConvertFrom-Json
-            if ($null -ne $Json.extensions -and $Json.extensions.external_uninstalls -contains $ExtensionID) {
-                $PreviouslyUninstalled += $Profile.Name
-            }
-        } catch { }  # a profile we can't read is skipped
-    }
-
-    if ($PreviouslyUninstalled.Count -gt 0) {
-        Write-Error "Chrome remembers that this extension was removed earlier (profile: $($PreviouslyUninstalled -join ', ')), and the install can't clear that while Chrome is running. Close Chrome completely (all windows), then run this installer again. Nothing was changed."
-        Wait-ForEnter "Press Enter to exit"
-        exit 1
-    }
-} elseif ($ProfileDirs.Count -gt 0) {
-
+if ($ProfileDirs.Count -gt 0) {
     foreach ($Profile in $ProfileDirs) {
         $PrefFiles = @(
             (Join-Path $Profile.FullName "Preferences"),
@@ -175,5 +178,5 @@ New-Item -Path $PolicyPath -Force | Out-Null
 New-ItemProperty -Path $PolicyPath -Name "ExtensionSettings" -Value $CompactJson -PropertyType String -Force | Out-Null
 
 Write-Host "`nSuccessfully registered $ExtensionID v$Version!" -ForegroundColor Green
-Write-Host "Next steps: Restart Chrome (close all of its windows, then reopen it) -> go to chrome://extensions -> toggle the extension ON once." -ForegroundColor Cyan
+Write-Host "Next steps: Open Chrome -> go to chrome://extensions -> toggle the extension ON once." -ForegroundColor Cyan
 Wait-ForEnter "`nPress Enter to close this window"

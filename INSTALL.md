@@ -35,14 +35,14 @@ The `.bat` files are thin wrappers around the `.ps1` scripts of the same name in
 
 1. Double-click **`scripts\install-gh-slash-extension.bat`**.
 2. Click **Yes** when prompted for Administrator (UAC) permission.
-   * *Note: The script detects the newest `.crx` version in the repo root and configures the Windows Registry. It does not close Chrome.*
+   * *Note: The script detects the newest `.crx` version in the repo root and configures the Windows Registry. If Chrome is open, it asks whether to close it (a normal close, like clicking the X on each window; tabs are restored when you reopen Chrome). Chrome must be closed for the install to continue.*
 3. Press **Enter** to close the PowerShell window once it finishes.
 
 ### 2. Enable the Extension (One-Time Step)
 
 Because this extension is installed locally rather than through the public Chrome Web Store, Chrome keeps it toggled off by default on first install:
 
-1. **Restart Google Chrome** (close all of its windows, then reopen it). Chrome only picks up the new registry entry at startup.
+1. **Open Google Chrome.** Chrome only picks up the new registry entry at startup, which is why the installer needs it closed.
 2. Navigate to **`chrome://extensions`**.
 3. Find **GitHub bot slash-command autocomplete** and flip its **enable toggle switch ON**.
 4. The extension icon will automatically pin to your Chrome toolbar and stay enabled across future restarts.
@@ -67,7 +67,7 @@ Because this extension is installed locally rather than through the public Chrom
 
 * **Extension doesn't appear after running the install script:**
   * Make sure **all** Chrome windows were closed before reopening Chrome.
-  * If the script stops with "Chrome remembers that this extension was removed earlier", close Chrome completely (all windows) and run the install script again. Chrome keeps a record of the removal that the script can only clear while Chrome is closed. Nothing is changed when it stops.
+  * If the script stops because Chrome is still running (you answered `n`, or Chrome didn't close in time), close Chrome completely (all windows, and any Chrome icon in the system tray) and run the install script again. Nothing is changed when it stops.
   * Ensure the `.crx` file is in the **repo root**, the folder that contains `scripts/`.
 * **Script is blocked by Windows Execution Policy:**
   * Open PowerShell in the repo root and run:
