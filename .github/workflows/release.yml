@@ -1,11 +1,11 @@
 name: Release
 
-# Whenever manifest.json changes on main (that is, when the version is bumped), build the Web Store
+# Whenever src/manifest.json changes on main (that is, when the version is bumped), build the Web Store
 # zip and publish it as a GitHub release tagged v<version>. Can also be run by hand.
 on:
   push:
     branches: [main]
-    paths: [manifest.json]
+    paths: [src/manifest.json]
   workflow_dispatch:
 
 permissions:
@@ -21,7 +21,7 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          $version = (Get-Content manifest.json -Raw | ConvertFrom-Json).version
+          $version = (Get-Content src/manifest.json -Raw | ConvertFrom-Json).version
           "version=$version" >> $env:GITHUB_OUTPUT
 
       - name: Check the release does not exist yet
@@ -39,7 +39,7 @@ jobs:
       - name: Pack
         if: steps.check.outputs.exists == 'false'
         shell: pwsh
-        run: ./pack.ps1
+        run: ./zip-extension.ps1
 
       - name: Create the release
         if: steps.check.outputs.exists == 'false'
