@@ -81,13 +81,15 @@ if ([string]::IsNullOrWhiteSpace($Version)) {
 
 Write-Host "Detected $($LatestCrx.Name) -> Version $Version" -ForegroundColor Cyan
 
-# 3. Force-close Chrome completely
-cmd /c "taskkill /F /IM chrome.exe /T >nul 2>&1"; $global:LASTEXITCODE = 0  # run via cmd so a missing chrome.exe is neither an error nor the exit code
-Start-Sleep -Seconds 2
+# 3. Chrome is left running. It rewrites its Preferences files when it exits, so a running Chrome would undo the
+#    blacklist cleanup below; in that case the cleanup is skipped and the user is asked to restart Chrome instead.
+$ChromeRunning = [bool](Get-Process -Name chrome -ErrorAction SilentlyContinue)
 
 # 4. Dynamically scan ALL Chrome profiles for the current user ($env:LOCALAPPDATA)
 $UserDataDir = Join-Path $env:LOCALAPPDATA "Google\Chrome\User Data"
-if (Test-Path $UserDataDir) {
+if ($ChromeRunning) {
+    Write-Host "Chrome is running, so its profiles were left alone. If you removed this extension from Chrome before, close Chrome completely and run this installer again." -ForegroundColor Yellow
+} elseif (Test-Path $UserDataDir) {
     $ProfileDirs = Get-ChildItem -Path $UserDataDir -Directory | Where-Object { $_.Name -eq "Default" -or $_.Name -like "Profile *" }
 
     foreach ($Profile in $ProfileDirs) {
@@ -152,5 +154,5 @@ New-Item -Path $PolicyPath -Force | Out-Null
 New-ItemProperty -Path $PolicyPath -Name "ExtensionSettings" -Value $CompactJson -PropertyType String -Force | Out-Null
 
 Write-Host "`nSuccessfully registered $ExtensionID v$Version!" -ForegroundColor Green
-Write-Host "Next steps: Open Chrome -> go to chrome://extensions -> toggle the extension ON once." -ForegroundColor Cyan
+Write-Host "Next steps: Restart Chrome (close all of its windows, then reopen it) -> go to chrome://extensions -> toggle the extension ON once." -ForegroundColor Cyan
 Wait-ForEnter "`nPress Enter to close this window"
