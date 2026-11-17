@@ -82,7 +82,7 @@ if ([string]::IsNullOrWhiteSpace($Version)) {
 Write-Host "Detected $($LatestCrx.Name) -> Version $Version" -ForegroundColor Cyan
 
 # 3. Force-close Chrome completely
-taskkill /F /IM chrome.exe /T 2>$null
+cmd /c "taskkill /F /IM chrome.exe /T >nul 2>&1"  # via cmd so a missing chrome.exe is not a PowerShell error
 Start-Sleep -Seconds 2
 
 # 4. Dynamically scan ALL Chrome profiles for the current user ($env:LOCALAPPDATA)

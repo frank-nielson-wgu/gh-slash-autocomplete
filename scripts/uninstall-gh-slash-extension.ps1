@@ -22,7 +22,7 @@ $DeleteCrx   = $false  # Set to $true if you also want the script to delete loca
 $ScriptDir = Split-Path -Parent $(if ([string]::IsNullOrWhiteSpace($PSScriptRoot)) { (Get-Location).Path } else { $PSScriptRoot })
 
 # 1. Force-close Chrome completely
-taskkill /F /IM chrome.exe /T 2>$null
+cmd /c "taskkill /F /IM chrome.exe /T >nul 2>&1"  # via cmd so a missing chrome.exe is not a PowerShell error
 Start-Sleep -Seconds 2
 
 # 2. Remove External Extension Registry entries (64-bit & 32-bit)
