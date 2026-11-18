@@ -1,3 +1,10 @@
+/* GitHub opens its own slash menu for a "/" at the start of any line, but a slash command only
+   counts as the first thing in the box, so hide GitHub's menu for a "/" further down. */
+.slash-cmd-hide-github .js-slash-command-menu .SelectMenu-modal,
+.slash-cmd-hide-github .js-slash-command-expander-loading .SelectMenu-modal {
+  display: none !important;
+}
+
 /* While our list has focus, hide the highlight on GitHub's selected item. */
 .slash-cmd-ours-focused .js-slash-command-menu [role="option"][aria-selected="true"] {
   background: transparent !important;
