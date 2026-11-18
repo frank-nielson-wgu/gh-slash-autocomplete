@@ -8,11 +8,13 @@ window.SlashCmd = {
     menu: null,
     target: null,
     zone: 'ours', // which list has keyboard focus: 'ours' or 'github'
-    // We only show alongside GitHub's own menu, above it. GitHub's menu appears a moment after ours
-    // is ready, so stay hidden until it does, and appear once in our final spot rather than at the
-    // caret and then jumping. If it does not open within a timeout, GitHub offers no commands here
-    // and we close without ever showing. Once shown we stay while the user types on, even after
-    // GitHub's menu has filtered away.
+    // GitHub's menu opens when "/" is typed as the first thing in the box, so ours waits for it only
+    // while the text is just that "/". As soon as anything follows it we are using one of our own
+    // commands, which GitHub's menu will not show for, and likewise when we reopen after closing.
+    githubExpected: false,
+    // GitHub's menu appears a moment after ours. Stay hidden until it does (or a timeout passes,
+    // for inputs GitHub's menu never shows for), so we appear once, in our final spot, rather
+    // than at the caret and then jumping.
     revealed: false,
 
     matches: [], // { label, description, insert, done } for each item shown

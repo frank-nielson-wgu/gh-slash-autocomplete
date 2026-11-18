@@ -11,7 +11,7 @@
   const memory = new WeakMap();
   let remembered = false; // whether this session has recorded `memory` yet
 
-  // How long to wait for GitHub's menu before giving up on showing ours.
+  // How long to wait for GitHub's menu before showing ours anyway.
   const REVEAL_TIMEOUT_MS = 1000;
   let sessionStart = 0;
 
@@ -102,12 +102,15 @@
     // A long list scrolls; keep the highlighted item in view.
     m.querySelector('.is-selected')?.scrollIntoView({ block: 'nearest' });
     m.style.display = 'block';
-    // We only show alongside GitHub's own menu, above it. Stay hidden until it opens; if it never
-    // does, the "/" is not somewhere GitHub offers commands, so we close (see track).
     if (!s.revealed) {
-      m.style.visibility = 'hidden';
-      if (!sessionStart) sessionStart = performance.now();
-      watchForGithub();
+      if (s.githubExpected) {
+        m.style.visibility = 'hidden';
+        if (!sessionStart) sessionStart = performance.now();
+        watchForGithub();
+      } else {
+        // GitHub's menu is not going to open, so there is nothing to wait for.
+        reveal();
+      }
     }
     // Only one list may look focused: dim GitHub's highlight while ours has focus.
     document.documentElement.classList.toggle('slash-cmd-ours-focused', s.zone === 'ours');
@@ -126,10 +129,7 @@
       return;
     }
     position();
-    if (!s.revealed) {
-      if (githubModal()) reveal();
-      else if (performance.now() - sessionStart >= REVEAL_TIMEOUT_MS) return close();
-    }
+    if (!s.revealed && (githubModal() || performance.now() - sessionStart >= REVEAL_TIMEOUT_MS)) reveal();
     requestAnimationFrame(track);
   }
 
@@ -244,6 +244,7 @@
     anchor = null;
     s.revealed = false;
     sessionStart = 0;
+    s.githubExpected = false;
     remembered = false;
     stopWatchingForGithub();
   }

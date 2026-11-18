@@ -5,11 +5,15 @@
   const s = ns.state;
   const { render, position, close, isOpen, reveal, githubModal, githubSelectedIndex } = ns.menu;
 
-  function update(ta) {
+  // `openedGithub` is whether this update came from typing the "/" that opens GitHub's own menu.
+  function update(ta, openedGithub = false) {
     if (ta.selectionStart !== ta.selectionEnd) return close();
     const before = ta.value.slice(0, ta.selectionStart);
     const suggestions = ns.suggestionsFor(before, ns.commandsHere());
     if (!suggestions) return close();
+    // Only a lone "/" is worth waiting on GitHub's menu for. Typing on from it ends the wait.
+    if (before !== '/') s.githubExpected = false;
+    else if (!isOpen()) s.githubExpected = openedGithub;
     // Typing re-filters both menus and resets GitHub's highlight, so start from ours again. The
     // results are ranked afresh too, so the highlight goes back to the best match.
     s.zone = 'ours';
@@ -55,7 +59,9 @@
 
   document.addEventListener('input', (e) => {
     if (!(e.target instanceof HTMLTextAreaElement)) return;
-    update(e.target);
+    // GitHub's menu opens when "/" is typed as the first character of the box.
+    const typedFirstSlash = e.data === '/' && e.target.value.slice(0, e.target.selectionStart) === '/';
+    update(e.target, typedFirstSlash);
   }, true);
 
   document.addEventListener('keydown', (e) => {
