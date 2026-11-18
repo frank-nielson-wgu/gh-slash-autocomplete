@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "GitHub bot slash-command autocomplete",
   "version": "2.2.3",
-  "description": "Autocomplete for bot slash commands in GitHub comment boxes. Finds commands on the pages you visit and lists them on an editable options page. Runs only on github.com; no network access.",
+  "description": "Autocomplete for bot slash commands in GitHub comment boxes. Learns commands from the pages you visit. No network access.",
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
