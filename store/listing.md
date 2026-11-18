@@ -41,7 +41,7 @@ GitHub is a trademark of GitHub, Inc. This extension is not affiliated with or e
 
 - **Icon (128x128):** `src/icons/icon-128.png` (already in the zip)
 - **Screenshots (1280x800, 24-bit PNG):** `store/screenshots/` — `1-menu-in-comment-box.png`, `2-options-page.png`, `3-options-arguments.png`. All use generic demo commands.
-- **Small promo tile (440x280):** TODO (required by the dashboard).
+- **Small promo tile (440x280):** `store/promo-small-440x280.png` (24-bit PNG).
 - Marquee promo tile (1400x560): optional.
 
 ## Privacy tab
