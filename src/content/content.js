@@ -5,19 +5,8 @@
   const s = ns.state;
   const { render, position, close, isOpen, reveal, githubModal, githubSelectedIndex } = ns.menu;
 
-  // GitHub opens its own menu for a "/" that starts any line, but a slash command is only the first
-  // thing in the box. With the caret after such a "/" further down, hide GitHub's menu (content.css)
-  // and keep its keys from reaching it, so Enter and Tab type as usual.
-  const SLASH_LATER_IN_BOX = /\n\/\S*$/;
-  function syncGithubMenu(ta) {
-    const hide = ta.selectionStart === ta.selectionEnd && SLASH_LATER_IN_BOX.test(ta.value.slice(0, ta.selectionStart));
-    s.hideGithub = hide;
-    document.documentElement.classList.toggle('slash-cmd-hide-github', hide);
-  }
-
   // `openedGithub` is whether this update came from typing the "/" that opens GitHub's own menu.
   function update(ta, openedGithub = false) {
-    syncGithubMenu(ta);
     if (ta.selectionStart !== ta.selectionEnd) return close();
     const before = ta.value.slice(0, ta.selectionStart);
     const suggestions = ns.suggestionsFor(before, ns.commandsHere());
@@ -75,17 +64,6 @@
     update(e.target, typedFirstSlash);
   }, true);
 
-  // GitHub's menu is hidden for a "/" further down the box; keep its keys from selecting an item in it.
-  document.addEventListener('keydown', (e) => {
-    if (!s.hideGithub || !(e.target instanceof HTMLTextAreaElement) || e.isComposing) return;
-    if (e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) return;
-    if (['ArrowUp', 'ArrowDown', 'Enter', 'Tab'].includes(e.key)) e.stopImmediatePropagation();
-  }, true);
-  // The caret can move onto or off such a "/" without any input.
-  document.addEventListener('keyup', (e) => {
-    if (e.target instanceof HTMLTextAreaElement) syncGithubMenu(e.target);
-  }, true);
-
   document.addEventListener('keydown', (e) => {
     if (!isOpen() || e.target !== s.target || e.isComposing) return;
     // Shift+Enter is a new line, Ctrl+Enter submits the comment, Shift+Tab moves focus back, and
@@ -138,10 +116,6 @@
   }, true);
   document.addEventListener('focusout', (e) => {
     if (e.target === s.target) close();
-    if (e.target instanceof HTMLTextAreaElement) {
-      s.hideGithub = false;
-      document.documentElement.classList.remove('slash-cmd-hide-github');
-    }
   }, true);
   // GitHub scrolls the page to fit its own menu, so follow it rather than close.
   window.addEventListener('scroll', position, true);
