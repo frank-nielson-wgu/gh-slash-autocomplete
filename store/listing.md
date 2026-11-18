@@ -40,7 +40,7 @@ GitHub is a trademark of GitHub, Inc. This extension is not affiliated with or e
 ## Graphics tab
 
 - **Icon (128x128):** `src/icons/icon-128.png` (already in the zip)
-- **Screenshots (1280x800 or 640x400, at least 1, up to 5):** TODO. Suggested: (1) the menu open in a PR comment box, (2) the options page with a few commands, (3) a command's arguments and *Only for* scoping.
+- **Screenshots (1280x800, 24-bit PNG):** `store/screenshots/` — `1-menu-in-comment-box.png`, `2-options-page.png`, `3-options-arguments.png`. All use generic demo commands.
 - **Small promo tile (440x280):** TODO (required by the dashboard).
 - Marquee promo tile (1400x560): optional.
 
