@@ -12,7 +12,7 @@ const source = fs.readFileSync(path.join(__dirname, '..', 'src', 'content', 'sca
 
 // Runs scan.js on a page whose comments have these texts, and resolves to the commands in storage
 // afterwards, as { name: [argument names] }.
-async function scan(comments, stored = [], pathname = '/acme/site/issues/1') {
+async function scan(comments, stored = [], pathname = '/acme/site/issues/1', raw = false) {
   let saved = JSON.parse(JSON.stringify(stored));
   const bodies = comments.map((text) => ({ textContent: text, firstElementChild: { textContent: text } }));
   const context = {
@@ -36,6 +36,7 @@ async function scan(comments, stored = [], pathname = '/acme/site/issues/1') {
   vm.createContext(context);
   vm.runInContext(source, context);
   await new Promise((resolve) => setTimeout(resolve, 20));
+  if (raw) return Object.fromEntries(saved.map((c) => [c.name, c.owners]));
   return Object.fromEntries(saved.map((c) => [c.name, c.args.map((a) => a.name)]));
 }
 
@@ -96,8 +97,39 @@ const cases = [
   { comments: ['/q --full'], stored: [{ name: 'q', enabled: true, source: 'manual', owners: [], args: [{ name: '--FULL' }] }], expected: { q: ['--FULL'] } },
 ];
 
+// Where a scanned command is scoped: `stored` is what is already saved, `pathname` the page, and
+// `expected` the owners each command ends up with.
+const scoped = (owners, source = 'scanned') => [{ name: 'q', enabled: true, source, owners, args: [] }];
+const scopeCases = [
+  { pathname: '/acme/site/issues/1', expected: { q: ['acme/site'] } },
+  { pathname: '/acme/site', expected: { q: ['acme/site'] } },
+  { pathname: '/Acme/Site/pull/2', expected: { q: ['acme/site'] } },
+  // No repository on the page: fall back to the owner.
+  { pathname: '/orgs/acme/projects/1', expected: { q: ['acme'] } },
+  { pathname: '/acme', expected: { q: ['acme'] } },
+  // Found under a further repository, even of the same owner.
+  { pathname: '/acme/other/issues/1', stored: scoped(['acme/site']), expected: { q: ['acme/site', 'acme/other'] } },
+  { pathname: '/beta/site/issues/1', stored: scoped(['acme/site']), expected: { q: ['acme/site', 'beta/site'] } },
+  // Already covered, by the repository or by its owner: nothing added.
+  { pathname: '/acme/site/issues/1', stored: scoped(['acme/site']), expected: { q: ['acme/site'] } },
+  { pathname: '/acme/site/issues/1', stored: scoped(['acme']), expected: { q: ['acme'] } },
+  { pathname: '/acme/site/issues/1', stored: scoped(['acme', '!acme/site']), expected: { q: ['acme', '!acme/site'] } },
+  // Set to apply everywhere, or added by hand: left as it is.
+  { pathname: '/acme/site/issues/1', stored: scoped([]), expected: { q: [] } },
+  { pathname: '/acme/site/issues/1', stored: scoped(['beta'], 'manual'), expected: { q: ['beta'] } },
+];
+
 (async () => {
   let failures = 0;
+  for (const [i, { pathname, stored, expected }] of scopeCases.entries()) {
+    const actual = await scan(['/q'], stored, pathname, true);
+    const pass = JSON.stringify(actual) === JSON.stringify(expected);
+    console.log(`${pass ? 'PASS' : 'FAIL'} scope #${i + 1}: ${pathname} -> ${JSON.stringify(actual)}`);
+    if (!pass) {
+      failures++;
+      console.error(`  expected ${JSON.stringify(expected)} but got ${JSON.stringify(actual)}`);
+    }
+  }
   for (const [i, { comments, stored, expected }] of cases.entries()) {
     const actual = await scan(comments, stored);
     const pass = JSON.stringify(actual) === JSON.stringify(expected);
@@ -109,7 +141,8 @@ const cases = [
       console.error(`  expected ${show(expected)} but got ${show(actual)}`);
     }
   }
-  console.log(`\n${cases.length - failures} of ${cases.length} passed`);
+  const total = cases.length + scopeCases.length;
+  console.log(`\n${total - failures} of ${total} passed`);
   if (failures) {
     console.error(`${failures} failed`);
     process.exitCode = 1;

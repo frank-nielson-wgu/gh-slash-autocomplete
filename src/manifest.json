@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "GitHub bot slash-command autocomplete",
-  "version": "2.2.4",
+  "version": "2.2.5",
   "description": "Autocomplete for bot slash commands in GitHub comment boxes. Learns commands from the pages you visit. No network access.",
   "icons": {
     "16": "icons/icon-16.png",
