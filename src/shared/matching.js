@@ -3,7 +3,8 @@
 
   const ns = window.SlashCmd;
 
-  // A slash command is only suggested when it is the very first thing in the comment box.
+  // A slash command is only suggested when it is the first thing on a line, as with GitHub's own
+  // slash menu; `before` is the text of the caret's line up to the caret.
   // Typing a command: "/up". Typing its argument, after a space: "/q rev". An argument may be
   // several words ("/q review this") when it was added by hand on the options page, so what
   // follows the command is any run of words; it only matters if it matches a known argument.
@@ -81,7 +82,7 @@
     return {
       mode: 'commands',
       heading: 'Bot commands',
-      start: 0, // the command starts the text, so everything is replaced from the beginning
+      start: 0, // the command starts the line, so everything is replaced from the line's beginning
       // Each command is followed by its arguments, so they can be picked without typing the whole
       // command first. The popup scrolls when this gets long.
       items: found.flatMap((c) => [

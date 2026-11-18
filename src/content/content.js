@@ -8,11 +8,14 @@
   // `openedGithub` is whether this update came from typing the "/" that opens GitHub's own menu.
   function update(ta, openedGithub = false) {
     if (ta.selectionStart !== ta.selectionEnd) return close();
+    // Like GitHub's menu, a command is the first thing on a line, not just in the whole box.
     const before = ta.value.slice(0, ta.selectionStart);
-    const suggestions = ns.suggestionsFor(before, ns.commandsHere());
+    const lineStart = before.lastIndexOf('\n') + 1;
+    const line = before.slice(lineStart);
+    const suggestions = ns.suggestionsFor(line, ns.commandsHere());
     if (!suggestions) return close();
     // Only a lone "/" is worth waiting on GitHub's menu for. Typing on from it ends the wait.
-    if (before !== '/') s.githubExpected = false;
+    if (line !== '/') s.githubExpected = false;
     else if (!isOpen()) s.githubExpected = openedGithub;
     // Typing re-filters both menus and resets GitHub's highlight, so start from ours again. The
     // results are ranked afresh too, so the highlight goes back to the best match.
@@ -20,7 +23,7 @@
     s.target = ta;
     s.mode = suggestions.mode;
     s.heading = suggestions.heading;
-    s.replaceFrom = suggestions.start;
+    s.replaceFrom = lineStart + suggestions.start;
     s.matches = suggestions.items;
     s.selected = Math.min(suggestions.defaultIndex ?? 0, s.matches.length - 1);
     render();
@@ -59,8 +62,8 @@
 
   document.addEventListener('input', (e) => {
     if (!(e.target instanceof HTMLTextAreaElement)) return;
-    // GitHub's menu opens when "/" is typed as the first character of the box.
-    const typedFirstSlash = e.data === '/' && e.target.value.slice(0, e.target.selectionStart) === '/';
+    // GitHub's menu opens when "/" is typed as the first character of a line.
+    const typedFirstSlash = e.data === '/' && /(^|\n)\/$/.test(e.target.value.slice(0, e.target.selectionStart));
     update(e.target, typedFirstSlash);
   }, true);
 
