@@ -10,7 +10,7 @@ find bot slash commands, such as `/q review`. It also reads the owner and reposi
 address (for example `acme` and `acme/site` from `github.com/acme/site`).
 
 It looks only for comments that start with a `/` command. It keeps the command name, any one-word
-arguments that follow it, and the owner it was found under. It does not keep the comment text, author
+arguments that follow it, and the repository (or owner) it was found under. It does not keep the comment text, author
 names, issue or pull request content, or anything else on the page.
 
 The extension does not read GitHub pages for any other purpose, and it does not run on any other site.

@@ -105,25 +105,35 @@
     return found;
   }
 
+  // What a command found on this page is scoped to: its repository ("acme/site"), or the owner
+  // ("acme") on a page with no repository, such as an organization page.
+  function pageScope() {
+    const owner = pageOwner();
+    const repo = pageRepo();
+    return owner && repo ? `${owner}/${repo}` : owner;
+  }
+
   // Add commands, and arguments for them, that we have not seen to the stored list. A command
-  // found on a page applies to that page's owner, and to each further owner it is found under.
-  // One the user has set to apply everywhere, or added themselves, is left as it is.
-  async function recordCommands(found, owner) {
+  // found on a page applies to that page's repository (or owner, where the page has no
+  // repository), and to each further repository it is found under. One the user has set to apply
+  // everywhere, or added themselves, is left as it is.
+  async function recordCommands(found, scope) {
+    const owner = scope.split('/')[0];
     const { commands: stored = [] } = await chrome.storage.local.get('commands');
     const known = new Map(stored.map((c) => [c.name.toLowerCase(), c]));
     let changed = false;
     for (const [name, argumentNames] of found) {
       let command = known.get(name.toLowerCase());
       if (!command) {
-        command = { name, description: '', enabled: true, source: 'scanned', owners: owner ? [owner] : [], args: [] };
+        command = { name, description: '', enabled: true, source: 'scanned', owners: scope ? [scope] : [], args: [] };
         stored.push(command);
         known.set(name.toLowerCase(), command);
         changed = true;
       }
       command.args ??= [];
-      if (command.source === 'scanned' && owner && command.owners?.length
-        && !command.owners.some((o) => o.replace(/^!/, '').split('/')[0] === owner)) {
-        command.owners.push(owner);
+      if (command.source === 'scanned' && scope && command.owners?.length
+        && !command.owners.some((o) => [scope, owner].includes(o.replace(/^!/, '')))) {
+        command.owners.push(scope);
         changed = true;
       }
       // A command whose arguments the user has locked keeps exactly the ones it has.
@@ -143,7 +153,7 @@
     scanTimer = setTimeout(() => {
       const found = scanForCommands();
       // The extension may have been reloaded under a still-open tab.
-      if (found.size) recordCommands(found, pageOwner()).catch(() => {});
+      if (found.size) recordCommands(found, pageScope()).catch(() => {});
     }, SCAN_DEBOUNCE_MS);
   }
 

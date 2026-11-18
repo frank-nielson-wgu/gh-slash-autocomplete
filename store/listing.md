@@ -31,7 +31,7 @@ PRIVATE BY DESIGN
 - Runs only on github.com
 - Only permission: storage (your list stays on your device)
 - Makes no network requests, loads no remote code, has no analytics or tracking
-- Keeps only command names, their arguments and the owner they were found under; never comment text
+- Keeps only command names, their arguments and the repository (or owner) they were found under; never comment text
 
 Open source (MIT): https://github.com/frank-nielson-wgu/gh-slash-autocomplete
 

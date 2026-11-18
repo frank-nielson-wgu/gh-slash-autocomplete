@@ -28,7 +28,7 @@ There is no build step. After editing a file, click the reload icon on the exten
   organizations or repositories a command applies to (for example `acme, octocat, acme/site`); it
   is suggested only on their pages. An owner covers all its repositories; put `!` in front to
   exclude one, and the most specific entry wins, so `!acme, acme/site` means only `acme/site`. Leave it empty to suggest the command everywhere. Commands the extension finds are
-  scoped to the owner of the page they were found on, and gain each further owner they turn up under.
+  scoped to the repository of the page they were found on (or to its owner, on a page with no repository, such as an organization page), and gain each further repository they turn up under.
 
 ## Files
 
