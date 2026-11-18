@@ -8,7 +8,7 @@ window.SlashCmd = {
     menu: null,
     target: null,
     zone: 'ours', // which list has keyboard focus: 'ours' or 'github'
-    // GitHub's menu opens when "/" is typed as the first thing in the box, so ours waits for it only
+    // GitHub's menu opens when "/" is typed as the first thing on a line, so ours waits for it only
     // while the text is just that "/". As soon as anything follows it we are using one of our own
     // commands, which GitHub's menu will not show for, and likewise when we reopen after closing.
     githubExpected: false,
